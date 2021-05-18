@@ -13,3 +13,9 @@ unique(rain$value)
 rain$value[rain$value>0]
 
 unique(rain$boxId)
+
+
+
+
+
+
