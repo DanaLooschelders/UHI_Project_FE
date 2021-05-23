@@ -42,6 +42,8 @@ rastlist <- list.files(path = "C:/Users/Ready2Go/sciebo/UHI_Projekt_Fernerkundun
 
 #check names
 rastlist
+#set working directory to location of MODIS files
+setwd("C:/Users/Ready2Go/sciebo/UHI_Projekt_Fernerkundung/Daten_roh/FE_LST/MODIS/PROCESSED/LST_Germany")
 #import all raster files in folder using lapply
 modis <- lapply(rastlist, raster)
 #transform all raster files to celsius
@@ -53,7 +55,7 @@ plot(modis_celsius[[1]])
 
 #crop to muenster
 gadm <- getData('GADM', country='DEU', level=2)
-gadm <- gadm[gadm$NAME_2=="Münster",]
+gadm <- gadm[gadm$NAME_2=="M?nster",]
 gadm <- as(gadm,"sf")
 
 #transform coordinates to MODIS coordinate system
