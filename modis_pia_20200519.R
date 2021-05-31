@@ -36,14 +36,14 @@ runGdal(job="LST_Germany","MOD11A1",begin = "2020.07.01", end = "2020.07.31",
         , SDSstring = "100000000000")
 
 #Read in the names of all files that end with .tif
-rastlist <- list.files(path = "C:/Users/Ready2Go/sciebo/UHI_Projekt_Fernerkundung/Daten_roh/FE_LST/MODIS/PROCESSED/LST_Germany", 
+rastlist <- list.files(path = "C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_roh/FE_LST/MODIS/PROCESSED/LST_Germany", 
                        pattern=".tif", 
                        all.files=TRUE, full.names=FALSE)
 
 #check names
 rastlist
 #set working directory to location of MODIS files
-setwd("C:/Users/Ready2Go/sciebo/UHI_Projekt_Fernerkundung/Daten_roh/FE_LST/MODIS/PROCESSED/LST_Germany")
+setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_roh/FE_LST/MODIS/PROCESSED/LST_Germany")
 #import all raster files in folder using lapply
 modis <- lapply(rastlist, raster)
 #transform all raster files to celsius
@@ -55,14 +55,31 @@ plot(modis_celsius[[1]])
 
 #crop to muenster
 gadm <- getData('GADM', country='DEU', level=2)
-gadm <- gadm[gadm$NAME_2=="M?nster",]
-gadm <- as(gadm,"sf")
+gadm <- gadm[gadm$NAME_2=="Münster",]
+gadm_sf <- as(gadm,"sf")
 
-#transform coordinates to MODIS coordinate system
-gadm <- st_transform(gadm,st_crs(modis_celsius[[1]]))
+#check if crs are matching
+crs(gadm)
+crs(modis_celsius[[1]])
+
+#transform coordinates of MODIS coordinate system to gadm
+modis_proj=lapply(modis_celsius,  function(x) projectRaster(from=x, crs=crs(gadm))
 mapview(gadm)
+crs(modis_celsius[[2]])
+
+#check crs again
+crs(gadm)
+crs(modis_proj[[1]])
+sum(is.na(values(modis_proj[[1]])))
 
 #crop the list to shape of muenster
-modis_crop=lapply(modis_celsius,  function(x) mask(x, gadm))
-#check if it worked by plotting first file
-mapview(modis_crop[[1]])
+extent(modis_proj[[1]])
+modis_crop=lapply(modis_proj,  function(x) crop(x=x, y=gadm_sf))
+sum(values(modis_crop[[1]]))
+
+#exclude if all values are NA
+modis_cc=Filter(function(a) sum(!is.na(values(a))), modis_crop)
+
+#check if it worked by plotting file
+mapview(modis_cc[[3]])
+mapview(modis_cc[[11]])+mapview(gadm_sf)
