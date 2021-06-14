@@ -47,24 +47,25 @@ setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_roh/FE_LST/MODIS/PRO
 #import all raster files in folder using lapply
 modis <- lapply(rastlist, raster)
 #transform all raster files to celsius
-modis_celsius <- lapply(modis, function(x) x*0.02-273)
+modis_celsius <- lapply(modis, function(x) x*0.02-273.15)
 
 #test by plotting one raster in Kelvin and one in Celsius
 plot(modis[[1]])
 plot(modis_celsius[[1]])
-
+values(modis_celsius[[1]])
+values(modis_celsius[[2]])
 #crop to muenster
 gadm <- getData('GADM', country='DEU', level=2)
-gadm <- gadm[gadm$NAME_2=="M?nster",]
+gadm <- gadm[gadm$NAME_2=="Münster",]
 gadm_sf <- as(gadm,"sf")
-
+mapview(gadm_sf)
 #check if crs are matching
 crs(gadm)
 crs(modis_celsius[[1]])
 
 #transform coordinates of MODIS coordinate system to gadm
 modis_proj=lapply(modis_celsius,  function(x) projectRaster(from=x, crs=crs(gadm)))
-mapview(gadm)
+
 crs(modis_celsius[[2]])
                   
                 
@@ -77,19 +78,25 @@ sum(is.na(values(modis_proj[[1]])))
 extent(modis_proj[[1]])
 modis_crop=lapply(modis_proj,  function(x) crop(x=x, y=gadm_sf))
 sum(values(modis_crop[[1]]))
-                  
+plot(modis_crop[[1]])                  
 #exclude if all values are NA
 modis_cc=Filter(function(a) sum(!is.na(values(a))), modis_crop)
-
+mapview(modis_cc[[2]])
 #save Raster
+setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_roh/FE_LST/MODIS/PROCESSED/Processed/")
 #lapply(modis_cc,  function(x) writeRaster(x=x, filename=paste("processed",x,".tif"),format = "GTiff"))
 for(i in 1:length(modis_cc)){
-        writeRaster(x=modis_cc[[i]],filename=paste("processed",i,".tif"),format = "GTiff")
+        writeRaster(x=modis_cc[[i]],filename=paste("processed",i,".tif"),format = "GTiff", 
+                    overwrite=T)
 }
 #check if it worked by plotting file
  mapview(modis_cc[[3]])
  mapview(modis_cc[[11]])+mapview(gadm_sf)
- mapview(modis_cc[[11]])
- 
- names(modis_cc[[1]])
- 
+
+ #Read in the names of all files that end with .tif
+ rastlist <- list.files(path = "C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_roh/FE_LST/MODIS/PROCESSED/Processed/", 
+                        pattern=".tif", 
+                        all.files=TRUE, full.names=FALSE)
+ #import all raster files in folder using lapply
+ modis_cc <- lapply(rastlist, raster)
+mapview(modis_cc[[3]]) 
