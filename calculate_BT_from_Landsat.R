@@ -22,6 +22,7 @@ crs(LS10)
 gadm_sf <- st_transform(gadm_sf, crs = st_crs(LS10))
 
 LS10_crop <- crop(y=gadm_sf,x=LS10)
+LS11_crop <- crop(y=gadm_sf,x=LS11)
 
 e <- extent(395103.5,415705.1,5744177,5768658)
 LS10_crop <- crop(LS10,e)
@@ -29,4 +30,10 @@ extent(gadm_sf)
 extent(LS10)
 mapview(LS10_crop)
 
-BT(Landsat_10 = LS10 , Landsat_11 = LS11)
+BT <- BT(Landsat_10 = LS10_crop , Landsat_11 = LS11_crop)
+summary(BT)
+mapview(BT)
+#writeRaster(x=BT,filename="BT",format = "GTiff")
+showClass()
+
+
