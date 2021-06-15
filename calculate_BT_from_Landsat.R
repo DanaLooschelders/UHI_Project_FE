@@ -10,7 +10,8 @@ setwd("/Users/amelie/Desktop/LOEK/MSc/M8/Projekt/Sciebo")
 
 LS10 <- raster("Daten_roh/Landsat/LC08_L1TP_197024_20200724_20200911_02_T1/LC08_L1TP_197024_20200724_20200911_02_T1_B10.TIF")
 LS11 <- raster("Daten_roh/Landsat/LC08_L1TP_197024_20200724_20200911_02_T1/LC08_L1TP_197024_20200724_20200911_02_T1_B11.TIF")
-
+red <- raster("Daten_roh/Landsat/LC08_L1TP_197024_20200724_20200911_02_T1/LC08_L1TP_197024_20200724_20200911_02_T1_B4.TIF")
+NIR <- raster("Daten_roh/Landsat/LC08_L1TP_197024_20200724_20200911_02_T1/LC08_L1TP_197024_20200724_20200911_02_T1_B5.TIF")
 gadm <- getData('GADM', country='DEU', level=2)
 gadm <- gadm[gadm$NAME_2=="Münster",]
 mapview(LS10)
@@ -37,6 +38,13 @@ mapview(BT_2)
 mapview(BT_1_celsius)
 BT_1_celsius <- (BT[[1]]-273.15)
 writeRaster(x=BT[[2]],filename="BT_2",format = "GTiff")
+
+NIR_crop <- crop(y=gadm_sf, x=NIR)
+red_crop <- crop(y=gadm_sf, x=red)
+NDVI <- ((NIR_crop- red_crop)/(NIR_crop + red_crop))
+E <- E_VandeGriend(NDVI)
+
+test <- MWA(BT = BT_1, tau = 0.86, E = E,Ta = 26)
 
 ######### zweiter versuch - per Hand berechnet 
 RADIANCE_MULT_BAND_10 <- 3.3420E-04
