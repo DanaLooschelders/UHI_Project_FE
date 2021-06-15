@@ -6,7 +6,7 @@ library(sp)
 library(rgdal)
 library(gdalUtils)
 setwd("/Users/amelie/Desktop/LOEK/MSc/M8/Projekt/Sciebo")
-setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung")
+#setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung")
 
 LS10 <- raster("Daten_roh/Landsat/LC08_L1TP_197024_20200724_20200911_02_T1/LC08_L1TP_197024_20200724_20200911_02_T1_B10.TIF")
 LS11 <- raster("Daten_roh/Landsat/LC08_L1TP_197024_20200724_20200911_02_T1/LC08_L1TP_197024_20200724_20200911_02_T1_B11.TIF")
@@ -27,13 +27,13 @@ LS11_crop <- crop(y=gadm_sf,x=LS11)
 e <- extent(395103.5,415705.1,5744177,5768658)
 LS10_crop <- crop(LS10,e)
 extent(gadm_sf)
-extent(LS10)
+extent(LS10_crop)
 mapview(LS10_crop)
 
 BT <- BT(Landsat_10 = LS10_crop , Landsat_11 = LS11_crop)
-summary(BT)
-mapview(BT)
-#writeRaster(x=BT,filename="BT",format = "GTiff")
-showClass()
-
+BT_2<- BT[[2]]
+BT_1 <- BT[[1]]
+mapview(BT_2)
+mapview(BT_1)
+writeRaster(x=BT[[2]],filename="BT_2",format = "GTiff")
 
