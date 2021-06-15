@@ -34,6 +34,40 @@ BT <- BT(Landsat_10 = LS10_crop , Landsat_11 = LS11_crop)
 BT_2<- BT[[2]]
 BT_1 <- BT[[1]]
 mapview(BT_2)
-mapview(BT_1)
+mapview(BT_1_celsius)
+BT_1_celsius <- (BT[[1]]-273.15)
 writeRaster(x=BT[[2]],filename="BT_2",format = "GTiff")
 
+######### zweiter versuch - per Hand berechnet 
+RADIANCE_MULT_BAND_10 <- 3.3420E-04
+RADIANCE_MULT_BAND_11 <- 3.3420E-04
+
+RADIANCE_ADD_BAND_10 <- 0.10000
+RADIANCE_ADD_BAND_11 <- 0.10000
+
+#Load raster package and load band 10 & 11 into R (navigate to your image directory first)
+library(raster)
+band_10 <- raster("Daten_roh/Landsat/LC08_L1TP_197024_20200724_20200911_02_T1/LC08_L1TP_197024_20200724_20200911_02_T1_B10.TIF") #change image name accordingly
+band_11 <- raster("Daten_roh/Landsat/LC08_L1TP_197024_20200724_20200911_02_T1/LC08_L1TP_197024_20200724_20200911_02_T1_B11.TIF") #change image name accordingly
+
+#Calculate TOA from DN:
+toa_band10 <- calc(band_10, fun=function(x){RADIANCE_MULT_BAND_10 * x + RADIANCE_ADD_BAND_10})
+toa_band11 <- calc(band_11, fun=function(x){RADIANCE_MULT_BAND_11 * x + RADIANCE_ADD_BAND_11})
+
+#Values from Metafile
+K1_CONSTANT_BAND_10 <- 774.8853
+K1_CONSTANT_BAND_11 <- 480.8883
+K2_CONSTANT_BAND_10 <- 1321.0789
+K2_CONSTANT_BAND_11 <- 1201.1442
+
+#Calculate LST in Kelvin for Band 10 and Band 11
+temp10_kelvin <- calc(toa_band10, fun=function(x){K2_CONSTANT_BAND_10/log(K1_CONSTANT_BAND_10/x + 1)})
+temp11_kelvin <- calc(toa_band11, fun=function(x){K2_CONSTANT_BAND_11/log(K1_CONSTANT_BAND_11/x + 1)})
+
+#Convert Kelvin to Celsius for Band 10 and 11
+temp10_celsius <- calc(temp10_kelvin, fun=function(x){x - 273.15})
+temp11_celsius <- calc(temp11_kelvin, fun=function(x){x - 273.15})
+crop_temp10 <- crop(y=gadm_sf,x=temp10_celsius)
+crop_temp11 <- crop(y=gadm_sf,x=temp11_celsius)
+
+mapview(crop_temp10)
