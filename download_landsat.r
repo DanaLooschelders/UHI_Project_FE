@@ -20,8 +20,8 @@ library(LST) #claculate LST from landsat bands 10 and 11
 #check if server is available
 services()
 #login to USGS
-login_USGS(username = "Dana_L", 
-           password="Bachelorarbeit2020",
+login_USGS(username = "Peppermint_Patty", 
+           password="MilchreisApfelmus.1",
            n_retry = 10,
            verbose = T)
 login_earthdata(username = "Dana_L2020", 
@@ -38,3 +38,4 @@ getLandsat_records(time_range = c("2020-07-01", "2020-07-31"),
                    check_products = T)
 getLandsat_data()
 #"LC08_L1TP_197023_20200622_20200707_01_T1"
+

@@ -1,5 +1,5 @@
 rm(list=ls() )
-setwd("/Users/amelie/Desktop/LOEK/MSc/M8/Projekt")
+setwd("/Users/amelie/Desktop/LOEK/MSc/M8/Projekt/Sciebo/Daten_roh/FE_LUC")
 
 library(sp)
 library(sf)
@@ -88,14 +88,46 @@ st_write(geb02,"dlm_ms.gpkg",append =TRUE, layer = "geb02")
 st_write(geb03,"dlm_ms.gpkg",append =TRUE, layer = "geb03")
 ####### wieder einladen #####
 
-dlm_ms <- readOGR("dlm_ms.gpkg", layer="sie04")
-ogrListLayers("dlm_ms.gpkg")
-x <- readOGR("dlm_ms.gpkg", layers[14]) 
-mapview(dlm_ms)
-#mapview(dlm_ms)
+sie02 <- readOGR("dlm_ms.gpkg", layer = "sie02")
+sie03 <- readOGR("dlm_ms.gpkg", layer = "sie03")
+sie04 <- readOGR("dlm_ms.gpkg", layer = "sie04")
+veg01 <- readOGR("dlm_ms.gpkg", layer = "veg01")
+veg02 <- readOGR("dlm_ms.gpkg", layer = "veg02")
+veg03 <- readOGR("dlm_ms.gpkg", layer = "veg03")
+veg04 <- readOGR("dlm_ms.gpkg", layer = "veg04")
+ver01 <- readOGR("dlm_ms.gpkg", layer = "ver01")
+ver03 <- readOGR("dlm_ms.gpkg", layer = "ver03")
+ver05 <- readOGR("dlm_ms.gpkg", layer = "ver05")
+ver06 <- readOGR("dlm_ms.gpkg", layer = "ver06")
+gew01 <- readOGR("dlm_ms.gpkg", layer = "gew01")
+geb02 <- readOGR("dlm_ms.gpkg", layer = "geb02")
+geb03 <- readOGR("dlm_ms.gpkg", layer = "geb03")
 
-?readOGR
+sie02<- sie02[,names(sie02)%in%c("OBJART","OBJART_TXT")]
+sie03<- sie03[,names(sie03)%in%c("OBJART","OBJART_TXT")]
+sie04<- sie04[,names(sie04)%in%c("OBJART","OBJART_TXT")]
+veg01<- veg01[,names(veg01)%in%c("OBJART","OBJART_TXT")]
+veg02<- veg02[,names(veg02)%in%c("OBJART","OBJART_TXT")]
+veg03<- veg03[,names(veg03)%in%c("OBJART","OBJART_TXT")]
+veg04<- veg04[,names(veg04)%in%c("OBJART","OBJART_TXT")]
+ver01<- ver01[,names(ver01)%in%c("OBJART","OBJART_TXT")]
+ver03<- ver03[,names(ver03)%in%c("OBJART","OBJART_TXT")]
+ver05<- ver05[,names(ver05)%in%c("OBJART","OBJART_TXT")]
+ver06<- ver06[,names(ver06)%in%c("OBJART","OBJART_TXT")]
+gew01<- gew01[,names(gew01)%in%c("OBJART","OBJART_TXT")]
+geb02<- geb02[,names(geb02)%in%c("OBJART","OBJART_TXT")]
+geb03<- geb03[,names(geb03)%in%c("OBJART","OBJART_TXT")]
 
+dlm_ms <- rbind(sie02, sie03,sie04, 
+                veg01, veg02, veg03,veg04,
+                ver01,ver03,ver05,ver06, 
+                gew01,geb02,geb03,  makeUniqueIDs = TRUE) 
+
+st_write(dlm_ms,"dlm_ms_all.shp")
+writeOGR(obj=dlm_ms, dsn="dlm_ms_all",layer = "OBJART", driver="GPKG")
+
+
+#xmn=395103.5,xmx= 415705.1, ymn =5744177, ymx=5768658
 ######## urban climate zones #####
 ucz <- raster("ucz/13322450/EU_LCZ_map.tif")
 ms <- st_transform(ms,crs(ucz))
@@ -110,5 +142,6 @@ ucz_ms <- crop(ucz,e)
 mapview(ucz_ms)
 
 writeRaster(ucz_ms,"ucz_ms.grd", overwrite = T)
+
 
 
