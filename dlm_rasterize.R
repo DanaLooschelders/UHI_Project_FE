@@ -19,13 +19,19 @@ projection <- crs( "+proj=utm +zone=32 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +unit
 r <- raster(e,
             crs = projection)
 res(r) <- 100
-dlm_raster <- rasterize(dlm_ms_all, r,field=dlm_ms_all$PolyID, fun='count' ,getCover = F)
-mapview(dlm_raster)
 
 #mit der Spalte OBJARt als integer (die Objekte kann man später den Zahlen zuordnen)
 # und fun=mode 
 dlm_raster<-rasterize(dlm_ms_all, r, field= as.integer(dlm_ms_all$OBJART),
-                       getCover=F, fun="mode", na.rm=T)
+                       getCover=F, fun=Mode)
+Mode <- function(x, na.rm = FALSE) {
+  if(na.rm){
+    x = subset(x, !is.na(x))
+  }
+  ux <- unique(x)
+  return(ux[which.max(tabulate(match(x, ux)))])
+}    
 
-warnings()
+
 mapview(dlm_raster)
+writeRaster(dlm_raster,"dlm_raster", overwrite = T)
