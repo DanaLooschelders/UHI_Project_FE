@@ -589,3 +589,6 @@ for(i in 1:length(list_iButton_corr_set)){
 list_iButton_corr_set_date <- lapply(list_iButton_corr_set, `[`, 2)
 list_iButton_corr_set_date <- lapply(list_iButton_corr_set_date, function(x) as.POSIXct(x$Datetime.1,format="%Y-%m-%d %H:%M:%S"))
 list_iButton_corr_set = map2(list_iButton_corr_set, list_iButton_corr_set_date, ~ mutate(., Datetime.1 = .y)) 
+
+setwd("C:/00_Dana/Uni/2. Mastersemester/Fernerkungsprojekt/UHI_Project_FE")
+save(list_iButton_corr_set, file="listiButtons.rData")
