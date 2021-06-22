@@ -5,7 +5,7 @@ library(sp)
 library(sf)
 library(mapview)
 library(raster)
-library(rgdal)
+library(rgdal) 
 
 ####### land use classification#####
 download.file("https://www.opengeodata.nrw.de/produkte/geobasis/lm/dlm50/dlm50_EPSG25832_Shape.zip", destfile ="dlm50.zip")
@@ -128,20 +128,5 @@ writeOGR(obj=dlm_ms, dsn="dlm_ms_all",layer = "OBJART", driver="GPKG")
 
 
 #xmn=395103.5,xmx= 415705.1, ymn =5744177, ymx=5768658
-######## urban climate zones #####
-ucz <- raster("ucz/13322450/EU_LCZ_map.tif")
-ms <- st_transform(ms,crs(ucz))
-crs(ms)
-
-?crop
-mapview(ucz_ms)
-eckkoor <- 
-  e <- extent(4130000,4180000,
-              3180000,3230000)
-ucz_ms <- crop(ucz,e)
-mapview(ucz_ms)
-
-writeRaster(ucz_ms,"ucz_ms.grd", overwrite = T)
-
 
 
