@@ -592,3 +592,10 @@ list_iButton_corr_set = map2(list_iButton_corr_set, list_iButton_corr_set_date, 
 
 setwd("C:/00_Dana/Uni/2. Mastersemester/Fernerkungsprojekt/UHI_Project_FE")
 save(list_iButton_corr_set, file="listiButtons.rData")
+
+list_iButton_only_temp <- lapply(list_iButton_corr_set, `[`, 1)
+dataframe_logger<-as.data.frame(do.call(cbind, list_iButton_only_temp))   
+colnames(dataframe_logger)<-names(list_iButton_corr_set)
+dataframe_logger$datetime<-list_iButton_corr_set[[1]]$Datetime.1
+setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_bearbeitet/Temp_Logger/")
+write.csv(dataframe_logger, file = "Logger_2020.csv")
