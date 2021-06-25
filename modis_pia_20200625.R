@@ -59,14 +59,7 @@ sensorName <- "Terra"
 path=terrapath
 
 
-  for (path in c(aquapath,terrapath)){
-    if(path==aquapath){
-      sensor <- 1
-      sensorName <- "Aqua"}
-    if(path==terrapath){
-      sensor <- 2
-      sensorName <- "Terra"
-    }
+
     dataTable[[sensor]] <- list()
     filelist <- list.files(path,full.names = TRUE,pattern=".tif$")
     filelist_time <- filelist[grep("view_time",filelist)]
@@ -82,8 +75,6 @@ path=terrapath
       #rename files
     #file.rename(from = filelist_time, to=new_names)
     ###check ?bereinstimmung
-    if (any(substr(filelist_data,nchar(filelist_data)-10,nchar(filelist_data))!=
-            substr(filelist_time,nchar(filelist_time)-10,nchar(filelist_time)))){
  
       # stop("filelist data does not match filelist time")
       filelist_data_night <- filelist_data[lapply(strsplit(filelist_data,"_"),function(x){x[[6]]})=="Night"]
@@ -102,11 +93,6 @@ path=terrapath
       
       filelist_time<-c(filelist_time_day,filelist_time_night)
       filelist_data<-c(filelist_data_day,filelist_data_night)
-      if (any(substr(filelist_data,nchar(filelist_data)-10,nchar(filelist_data))!=
-              substr(filelist_time,nchar(filelist_time)-10,nchar(filelist_time)))){
-        stop("filelist data does not match filelist time")
-      }}
-  }
 
 
 #save rData for aqua
@@ -114,3 +100,6 @@ save.image(file="aqua_lists.rData")
 
 #save rData for terra
 save.image(file="terra_lists.rData")
+
+#Aendern des NAmes bei Sciebo
+filelist_data=str_replace_all(filelist_data, string = "Dana", replacement = "Ready2Go")
