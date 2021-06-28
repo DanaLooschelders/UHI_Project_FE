@@ -59,6 +59,7 @@ time_night_crop=lapply(time_night,  function(x) crop(x=x, y=gadm_sf))
 
 
 ####Info for solar time
+#https://lpdaac.usgs.gov/documents/118/MOD11_User_Guide_V6.pdf
 #Note that the Day_view_time and Night_view_time are in local solar time, 
 #which is the UTC time plus grid’s longitude  in  degrees  /  15  degrees  
 #(in hours,  +24  if  local  solar  time<  0  or -24  
@@ -75,9 +76,11 @@ range(values(time_day_crop[[7]]), na.rm=T)
 #LST = UTC + longitude/15
 #UTC = LST - longitude/15
 #use min value (beginn of swath) 
-UTC_time_day=rep(NA, length(time_day_crop))
-UTC_time_night=rep(NA, length(time_night_crop))
 
+#create results dataframe (just to check)
+UTC_time_day=rep(NA, length(time_day_crop))
+
+#convert times in loop for day
 for (i in 1:length(time_day_crop)){
   #check if time values are available
   if(sum(!is.na(values(time_day_crop[[i]])))){
@@ -91,24 +94,61 @@ for (i in 1:length(time_day_crop)){
   MESZ_format <- paste(floor(MESZ), 
                        round((MESZ-floor(MESZ))*60), sep=":")
   #write into results data frame
-  UTC_time_day[i]<-MESZ_format
+  #VERY UGLY way to get a leading zero for the hour
+  UTC_time_day[i]<-substr(strptime(MESZ_format, 
+                                     format="%H:%M"), 
+                            start=12, stop=16)
+  names(data_day_celsius_crop)[i]<-paste(names(data_day_celsius_crop)[i], 
+                                         UTC_time_day[i], sep="_")
   }else{}
 }
-
+#check if it worked
 UTC_time_day
+
+#create results dataframe (just to check)
+UTC_time_night=rep(NA, length(time_night_crop))
+#convert times in loop for night
+for (i in 1:length(time_night_crop)){
+  #check if time values are available
+  if(sum(!is.na(values(time_night_crop[[i]])))){
+    #get minimum local solar time value
+    LST=min(values(time_night_crop[[i]]), na.rm=T)
+    #calculate UTC 
+    UTC=LST-7.6261/15
+    #convert to UTC+2 (European summer time)
+    MESZ=UTC+2
+    #convert from decimal format into POSixct
+    MESZ_format <- paste(floor(MESZ), 
+                         round((MESZ-floor(MESZ))*60), sep=":")
+    #write into results data frame
+    #VERY UGLY way to get a leading zero for the hour
+    UTC_time_night[i]<-substr(strptime(MESZ_format, 
+                                       format="%H:%M"), 
+                              start=12, stop=16)
+    names(data_night_celsius_crop)[i]<-paste(names(data_night_celsius_crop)[i], 
+                                           UTC_time_night[i], sep="_")
+  }else{}
+}
+#check if it worked
+UTC_time_night
 #stack time and data for day
-day_stack<-data_day_celsius_crop
-for(i in 1:length(data_day_celsius_crop)){
-  day_stack[[i]]<-stack(data_day_celsius_crop[[i]], time_day_crop[[i]])
-}
+#day_stack<-data_day_celsius_crop
+#for(i in 1:length(data_day_celsius_crop)){
+ # day_stack[[i]]<-stack(data_day_celsius_crop[[i]], time_day_crop[[i]])
+#}
 #stack time and data for night
-night_stack<-data_night_celsius_crop
-for(i in 1:length(data_night_celsius_crop)){
-  night_stack[[i]]<-stack(data_night_celsius_crop[[i]], time_night_crop[[i]])
-}
+#night_stack<-data_night_celsius_crop
+#for(i in 1:length(data_night_celsius_crop)){
+#  night_stack[[i]]<-stack(data_night_celsius_crop[[i]], time_night_crop[[i]])
+#}
 
 #exclude if all values are NA
-day_stack_cc=Filter(function(a) sum(!is.na(values(a@layers[[1]]))), day_stack)
-night_stack_cc=Filter(function(a) sum(!is.na(values(a@layers[[1]]))), night_stack)
-
-mapview(day_stack_cc[[1]]@layers[[2]])
+day_cc=Filter(function(a) sum(!is.na(values(a))), data_day_celsius_crop)
+night_cc=Filter(function(a) sum(!is.na(values(a))), data_night_celsius_crop)
+#bind lists
+terra=c(day_cc, night_cc)
+#create dataframe to match POSIXct time to filename
+terra_times=data.frame("filename"=names(terra), "datetime"=NA)
+terra_times$datetime<-strptime(substr(terra_times$filename, 
+                start=10, stop=nchar(terra_times$filename[1])),
+         format="%Y%j_%H:%M", tz="UTC")
