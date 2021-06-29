@@ -22,7 +22,7 @@ cop <- lapply(files, raster)
 cop_ms=mosaic(cop[[11]], cop[[12]], fun="mean")
 mapview(cop_ms) #check
 #remove other files
-remove(cop)
+#remove(cop)
 #crop to muenster
 gadm <- getData('GADM', country='DEU', level=2)
 gadm <- gadm[gadm$NAME_2=="Münster",]
@@ -34,15 +34,15 @@ crs(gadm)
 crs(cop[[1]])
 #transform coordinates of cop coordinate system to gadm
 
-#cop_ms_proj=projectRaster(from=cop_ms, crs=crs(gadm))  das hat bei mir nie zu Ende gerechnet 
-#daher jetzt 
-e <- extent(395103.5,415705.1,5744177, 5768658)
-projection <- CRS('+init=EPSG:25832')
-cop_ms_proj <- raster(e,
-                      crs = projection)
-res(cop_ms_proj) <- 100 
-cop_ms_proj=projectRaster(from=cop_ms, to = cop_ms_proj)
-mapview(cop_ms_proj)# check 
+cop_ms_proj=projectRaster(from=cop_ms, crs=crs(gadm)) 
+
+#e <- extent(395103.5,415705.1,5744177, 5768658)
+#projection <- CRS('+init=EPSG:25832')
+#cop_ms_proj <- raster(e,
+                     # crs = projection)
+#res(cop_ms_proj) <- 100 
+#cop_ms_proj=projectRaster(from=cop_ms, to = cop_ms_proj)
+mapview(cop_ms_proj) #check 
 crs(cop_ms_proj)
 
 #crop 
@@ -60,4 +60,4 @@ setwd("/Users/amelie/Desktop/LOEK/MSc/M8/Projekt/Sciebo/Daten_bearbeitet/Coperni
 writeRaster(cop_ms_proj, filename = "copernicus_tree_cover_MS_100m.tif")
 
 #resample to modis resolution
-#cop_ms_agg=raster::aggregate(cop_ms_crop, 10)
+#cop_ms_agg=raster::aggregate(cop_ms_crop, 10, fun =mean)
