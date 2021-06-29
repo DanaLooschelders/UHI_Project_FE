@@ -18,9 +18,10 @@ e <- extent(395103.5,415705.1,5744177, 5768658)
 projection <- CRS('+init=EPSG:25832')
 ucz_ms <- raster(e,
             crs = projection)
+res(ucz_ms) <- 100
 
 #raster::crs(ucz) <- CRS('+init=EPSG:25832')
 ucz_ms <- projectRaster(ucz, ucz_ms, projection, alignOnly = F)
-mapview(ucz_ms)
+mapview(ucz_ms) #check 
 setwd("/Users/amelie/Desktop/LOEK/MSc/M8/Projekt/Sciebo/Daten_bearbeitet/FE_UCZ")
 writeRaster(ucz_ms,"ucz_ms.grd", overwrite = T)
