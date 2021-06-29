@@ -6,18 +6,21 @@ library(rgdal)
 library(gdalUtils)
 library(sf)
 library(mapview)
-library(tiff)
 
-MODISpath <- "C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_roh/FE_LST/modis_neu/"
+MODISpath <- "C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_roh/FE_LST/aqua/"
 
 aquapath <- paste0(MODISpath,"/aqua/")
-terrapath <- paste0(MODISpath,"/terra/")
+#terrapath <- paste0(MODISpath,"/terra/")
 
 #test: try only for terra
-path=terrapath
-
+#path=terrapath
+path=aquapath
 #whole list
 filelist <- list.files(path,full.names = TRUE,pattern=".tif$")
+
+#split by year
+#filelist_year <- filelist[grep("2020",filelist)]
+
 #split by data and time
 filelist_time <- filelist[grep("view_time",filelist)]
 filelist_data <- filelist[-grep("view_time",filelist)]
@@ -30,11 +33,11 @@ filelist_time_day <- filelist_time[grep("Day", filelist_time)]
 #load LST data for day
 data_day <- lapply(filelist_data_day, raster)
 #set names
-names(data_day)<-substr(filelist_data_day,78,93)
+names(data_day)<-substr(filelist_data_day,76,91)
 #load LST data for night
 data_night <- lapply(filelist_data_night, raster)
 #set names
-names(data_night)<-substr(filelist_data_night,78,93)
+names(data_night)<-substr(filelist_data_night,76,91)
 #convert values to celsius
 data_day_celsius <- lapply(data_day, function(x) x-273.15)
 data_night_celsius <- lapply(data_night, function(x) x-273.15)
@@ -42,11 +45,11 @@ data_night_celsius <- lapply(data_night, function(x) x-273.15)
 #load time data for day
 time_day <- lapply(filelist_time_day, raster)
 #set names
-names(time_day)<-substr(filelist_time_day,78,93)
+names(time_day)<-substr(filelist_time_day,76,91)
 #load time data for night
 time_night <- lapply(filelist_time_night, raster)
 #set names
-names(time_night)<-substr(filelist_time_night,78,93)
+names(time_night)<-substr(filelist_time_night,76,91)
 
 #load MS shape
 gadm <- getData('GADM', country='DEU', level=2)
@@ -158,22 +161,33 @@ UTC_time_night
 day_cc=Filter(function(a) sum(!is.na(values(a))), data_day_celsius_crop)
 night_cc=Filter(function(a) sum(!is.na(values(a))), data_night_celsius_crop)
 #bind lists
-terra=c(day_cc, night_cc)
+aqua=c(day_cc, night_cc)
 #change name format to contain only underscores and no points
-names(terra)<-gsub(names(terra), pattern = "[.]", replacement="_")
+names(aqua)<-gsub(names(aqua), pattern = "[.]", replacement="_")
 #create dataframe to match POSIXct time to filename
-terra_times=data.frame("filename"=names(terra), "datetime"=NA)
-terra_times$datetime<-strptime(substr(terra_times$filename, 
-                start=10, stop=nchar(terra_times$filename[1])),
+aqua_times=data.frame("filename"=names(aqua), "datetime"=NA)
+aqua_times$datetime<-strptime(substr(aqua_times$filename, 
+                start=10, stop=nchar(aqua_times$filename[1])),
          format="%Y%j_%H:%M", tz="UTC")
-
+#reformat filename
+names(aqua)<-gsub(names(aqua), pattern = "[:]", replacement="_")
+aqua_times$filename<-names(aqua)
 #save output to match logger to modis by time
-write.table(terra_times, file="terra_times.csv", sep=",", dec=".", row.names=F)
+write.table(aqua_times, file="aqua_times.csv", sep=",", dec=".", row.names=F)
 #set new working directory for processed files
-setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_bearbeitet/FE_LST/terra_processed")
+setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_bearbeitet/FE_LST/aqua_processed")
+#save output to match logger to modis by time
+write.table(aqua_times, file="aqua_times.csv", sep=",", dec=".", row.names=F)
 #write new rasters
-for(i in 1:length(terra)){
-  writeRaster(x=terra[[i]],filename=paste("terra_",terra_times$filename[i],".grd"),
-              overwrite=T, format="raster")
+
+for(i in 1:length(aqua)){
+  writeRaster(x=aqua[[i]],filename=paste("aqua_",aqua_times$filename[i],".tif"),
+              overwrite=T, format="GTiff")
 }
 
+#resample
+mapview(aqua[[1]])
+res(aqua[[1]])
+test<-raster::disaggregate(aqua[[1]], fact=10)
+res(test)
+mapview(test)
