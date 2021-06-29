@@ -21,7 +21,7 @@ e <- extent(395103.5,415705.1,5744177, 5768658)
 projection <- crs( "+proj=utm +zone=32 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs")
 r <- raster(e,
             crs = projection)
-res(r) <- res(modis)
+res(r) <- 100 
 
 #mit der Spalte OBJARt als integer (die Objekte kann man später den Zahlen zuordnen)
 # und fun=mode 
@@ -42,5 +42,5 @@ names <- unique(dlm_ms_all$OBJART_TXT)
 nutzung <- as.data.frame(names)
 nutzung$nummer <- unique(dlm_ms_all$OBJART)
 
-#setwd("/Users/amelie/Desktop/LOEK/MSc/M8/Projekt/Sciebo/Daten_bearbeitet/dlm")
-writeRaster(dlm_raster,"dlm_raster", overwrite = T)
+setwd("/Users/amelie/Desktop/LOEK/MSc/M8/Projekt/Sciebo/Daten_bearbeitet/dlm")
+writeRaster(dlm_raster,"dlm_raster_100m", overwrite = T)
