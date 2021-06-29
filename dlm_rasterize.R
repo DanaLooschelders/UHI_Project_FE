@@ -10,15 +10,19 @@ library(rgdal)
 dlm_ms_all<- read_sf("dlm_ms_all")
 mapview(dlm_ms_all)
 
+gadm <- getData('GADM', country='DEU', level=2)
+gadm <- gadm[gadm$NAME_2=="Münster",]
+gadm_sf <- as(gadm,"sf")
+
+crs(dlm_ms_all) 
+
 unique(dlm_ms_all$OBJART)
 unique(dlm_ms_all$Art)
 dlm_ms_all$PolyID <- 1:nrow(dlm_ms_all)
 
-modis <- raster("/Users/amelie/Desktop/LOEK/MSc/M8/Projekt/Sciebo/Daten_roh/FE_LST/MODIS/PROCESSED/LST_Germany/MOD11A1.A2020183.LST_Day_1km.tif")
-res(modis)
 
 e <- extent(395103.5,415705.1,5744177, 5768658)
-projection <- crs( "+proj=utm +zone=32 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs")
+projection <- crs(gadm)
 r <- raster(e,
             crs = projection)
 res(r) <- 100 
@@ -33,10 +37,12 @@ Mode <- function(x, na.rm = FALSE) {
   return(ux[which.max(tabulate(match(x, ux)))])
 }    
 
-dlm_raster<-rasterize(dlm_ms_all, r, field= as.integer(dlm_ms_all$OBJART),
+dlm_raster <- rasterize(dlm_ms_all, r, field= as.integer(dlm_ms_all$OBJART),
                        getCover=F, fun=Mode)
 
 mapview(dlm_raster)
+
+dlm_raster <- projectRaster(from=dlm_raster, crs=crs(gadm))
 
 names <- unique(dlm_ms_all$OBJART_TXT)
 nutzung <- as.data.frame(names)
