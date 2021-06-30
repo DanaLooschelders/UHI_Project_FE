@@ -7,21 +7,35 @@ library(mapview)
 library(raster)
 library(rgdal)
 ucz <- raster("/Users/amelie/Desktop/LOEK/MSc/M8/Projekt/Sciebo/Daten_roh/FE_UCZ/13322450/EU_LCZ_map.tif")
+e <- extent(2735200, 4030800, 3279800, 4854600)#roughly cropped to make it faster to calculate 
+ucz <- crop(ucz,e)
+mapview(ucz)  
 
-gadm <- getData('GADM',country='DEU', level =2)
-ms <- gadm[gadm$NAME_2 == "Münster",]
-ms_sf <- as(ms,"sf")
-plot(ms_sf)
-crs(ms_sf) <- CRS('+init=EPSG:25832')
+gadm <- getData('GADM', country='DEU', level=2)
+gadm <- gadm[gadm$NAME_2=="Münster",]
+gadm_sf <- as(gadm,"sf")
+mapview(gadm_sf)
 
-e <- extent(395103.5,415705.1,5744177, 5768658)
+ucz_proj=projectRaster(ucz, crs="+proj=longlat +datum=WGS84 +no_defs") 
+
+crs(ucz) <- crs(gadm_sf) 
+
+extent(ucz) <- extent(7.4739637,7.774222 ,51.84019,52.06018)
+
+
 projection <- CRS('+init=EPSG:25832')
 ucz_ms <- raster(e,
             crs = projection)
 res(ucz_ms) <- 100
 
-#raster::crs(ucz) <- CRS('+init=EPSG:25832')
-ucz_ms <- projectRaster(ucz, ucz_ms, projection, alignOnly = F)
+ucz_ms <- projectRaster(ucz, projection, alignOnly = F)
+
+#ucz_ms <- projectRaster(from=ucz_ms, crs=crs(gadm))
+#crs(ucz_ms) <- "+proj=longlat +datum=WGS84 +no_defs "
 mapview(ucz_ms) #check 
+
+ucz_ms_crop <- crop(ucz, gadm_sf)
+mapview(ucz_ms_crop)
+
 setwd("/Users/amelie/Desktop/LOEK/MSc/M8/Projekt/Sciebo/Daten_bearbeitet/FE_UCZ")
 writeRaster(ucz_ms,"ucz_ms.grd", overwrite = T)
