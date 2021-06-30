@@ -185,9 +185,21 @@ for(i in 1:length(aqua)){
               overwrite=T, format="GTiff")
 }
 
-#resample
-mapview(aqua[[1]])
-res(aqua[[1]])
-test<-raster::disaggregate(aqua[[1]], fact=10)
-res(test)
-mapview(test)
+#load data to resample
+setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_bearbeitet/FE_LST/terra_processed")
+filelist <- list.files(full.names = T,pattern=".tif$")
+names<-substr(filelist, start=10, stop=31)
+terra<-lapply(filelist, raster)
+names(terra)<-names
+#read in file with names
+terra_times<-read.csv(file="terra_times.csv")
+
+#resample terra
+terra_res<-lapply(terra, function(x) disaggregate(x=x, fact=10))
+#write raster
+setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_bearbeitet/FE_LST/terra_processed_resampled/")
+
+for(i in 1:length(terra_res)){
+  writeRaster(x=terra[[i]],filename=paste("terra_",names(terra_res[[i]]),".tif"),
+              overwrite=T, format="GTiff")
+}

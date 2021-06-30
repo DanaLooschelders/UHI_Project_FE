@@ -53,7 +53,8 @@ waterlogger=des$Logger_ID[des$Loggertyp=="WL"]
 logger <- logger[ , ! names(logger) %in% c(waterlogger, "69")] 
 
 logger$date<-as.POSIXct(logger$datetime)
-logger=timeAverage(logger,avg.time = "hour" )
+logger<-logger[,-27]
+logger=timeAverage(logger,avg.time = "hour")
 names(logger)[1]<-"datetime"
 #load modis times and dates to match with logger temp
 setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_bearbeitet/FE_LST/")
@@ -130,3 +131,6 @@ for(i in 1:length(all_temp_match)){
 #save workspace as list
 setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_bearbeitet")
 save.image(file="SpatialPoints_Temp_Data")
+
+range(spatial_list[[1]]$Temp)
+mapview(spatial_list[[5]])
