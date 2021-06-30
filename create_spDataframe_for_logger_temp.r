@@ -40,39 +40,50 @@ metadata=data.frame("Logger_ID"=as.integer(colnames(logger)[1:26]))
 metadata=merge(metadata, des,by = "Logger_ID")
 #correct lat/lon values
 metadata$Lat=metadata$Lat/1000000
-metadata$Lat=metadata$Lon/1000000
-
+metadata$Lon=metadata$Lon/1000000
+#create metadata subset for merge
+metadata_subset <- metadata[ , names(metadata) %in% c("Lat", "Lon")]
+rownames(metadata_subset)<-metadata$Logger_ID
 #create dataframe per time
 for(i in 1:length(modis$filename)){
   if(any(logger$datetime==modis$datetime_round[i], na.rm = T))
   {if(i==1){
     logger_match<-list()
-    logger_match[[i]]<-data.frame(ID<-colnames(logger)[1:length(colnames(logger))-1], 
-         temperature<-t(logger[logger$datetime==modis$datetime_round[i],
-                               1:ncol(logger)-1]), row.names=F)
-    names(logger_match[[i]])<-c("ID", "Temperature")
-    names(logger_match)[[i]]<-modis$filename[i]
-  }else{
-    logger_match[[i]]<-data.frame(ID=colnames(logger)[1:length(colnames(logger))-1], 
+    temp_dat<-data.frame(ID<-as.character(colnames(logger)[1:length(colnames(logger))-1]), 
          temperature<-t(logger[logger$datetime==modis$datetime_round[i],
                                1:ncol(logger)-1]))
-    names(logger_match[[i]])<-c("ID", "Temperature")
+    logger_match[[i]]<-merge(metadata_subset,temp_dat, by="row.names" )
+    names(logger_match[[i]])<-c("rownames", "Lat", "Lon", "Logger_ID", "Temperature")
+    names(logger_match)[[i]]<-modis$filename[i]
+  }else{
+    temp_dat<-data.frame(ID<-as.character(colnames(logger)[1:length(colnames(logger))-1]), 
+                         temperature<-t(logger[logger$datetime==modis$datetime_round[i],
+                                               1:ncol(logger)-1]))
+    logger_match[[i]]<-merge(metadata_subset,temp_dat, by="row.names" )
+    names(logger_match[[i]])<-c("rownames", "Lat", "Lon", "Logger_ID", "Temperature")
     names(logger_match)[[i]]<-modis$filename[i]
   }
   }else{}
 }
+#add Temperature to metadata
+#metadata$Temperature=NA
+#for(i in as.integer(colnames(logger)[1:26])){
+#  index=which(colnames(logger)==as.character(i))
+#  metadata$Temperature[metadata$Logger_ID==i]<-logger[index,1]
+#}
 
-names(logger_match)<-modis$filename
-#add Temperture to metadata
-
-metadata$Temperature=NA
-for(i in as.integer(colnames(logger)[1:26])){
-  index=which(colnames(logger)==as.character(i))
-  metadata$Temperature[metadata$Logger_ID==i]<-logger[index,1]
-}
-
-metadata$Temperature
+#remove empty list entries
+logger_match = logger_match[-which(sapply(logger_match, is.null))]
 #create spatialpointsdataframe with logger coordinates
-test=SpatialPointsDataFrame(coords = metadata[,4:5], data=)
+for(i in 1:length(logger_match)){
+  if(i ==1){
+    spatial_list=logger_match
+    spatial_list[[i]]<-SpatialPointsDataFrame(coords =spatial_list[[i]][,2:3], 
+                                              data=data.frame(Temp=spatial_list[[i]][,5]))
+  }else{
+    spatial_list[[i]]<-SpatialPointsDataFrame(coords =spatial_list[[i]][,2:3],
+                                              data=data.frame(Temp=spatial_list[[i]][,5]))
+  }
+}
 
 #match temperature for a certain coordinate by logger ID
