@@ -49,4 +49,4 @@ nutzung <- as.data.frame(names)
 nutzung$nummer <- unique(dlm_ms_all$OBJART)
 
 setwd("/Users/amelie/Desktop/LOEK/MSc/M8/Projekt/Sciebo/Daten_bearbeitet/dlm")
-writeRaster(dlm_raster,"dlm_raster_100m", overwrite = T)
+writeRaster(dlm_raster,"dlm_raster_100m.tif", overwrite = T)
