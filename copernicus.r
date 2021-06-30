@@ -36,28 +36,22 @@ crs(cop[[1]])
 
 cop_ms_proj=projectRaster(from=cop_ms, crs=crs(gadm)) 
 
-#e <- extent(395103.5,415705.1,5744177, 5768658)
-#projection <- CRS('+init=EPSG:25832')
-#cop_ms_proj <- raster(e,
-                     # crs = projection)
-#res(cop_ms_proj) <- 100 
-#cop_ms_proj=projectRaster(from=cop_ms, to = cop_ms_proj)
 mapview(cop_ms_proj) #check 
 crs(cop_ms_proj)
 
 #crop 
-#Amelie: das geht dann irgendwie nicht mehr, das liegt denke ich an dem crs 
-#aber das oben ist (für mich) der einfachste Weg die Auflösung zu öndern und so 
-#versucht gerne noch das zu cropen, wenn ihr wollt 
 cop_ms_crop=crop(cop_ms_proj, gadm_sf)
-mapview(cop_ms_crop)+mapview(gadm_sf)
+mapview(cop_ms_crop) +mapview(gadm_sf)
+
+cop_ms_agg=raster::aggregate(cop_ms_crop, 10, fun =mean)
+mapview(cop_ms_agg)
 
 #save file
 setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_bearbeitet/Copernicus")
 writeRaster(cop_ms_crop, filename = "copernicus_tree_cover_crop_MS.tif", 
             overwrite=T)
-setwd("/Users/amelie/Desktop/LOEK/MSc/M8/Projekt/Sciebo/Daten_bearbeitet/Copernicus")
-writeRaster(cop_ms_proj, filename = "copernicus_tree_cover_MS_100m.tif")
 
-#resample to modis resolution
-#cop_ms_agg=raster::aggregate(cop_ms_crop, 10, fun =mean)
+setwd("/Users/amelie/Desktop/LOEK/MSc/M8/Projekt/Sciebo/Daten_bearbeitet/Copernicus")
+writeRaster(cop_ms_agg, filename = "copernicus_tree_cover_MS_100m.tif",overwrite =T)
+
+
