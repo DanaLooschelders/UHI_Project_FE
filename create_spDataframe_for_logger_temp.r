@@ -7,13 +7,42 @@ library(sf)
 library(mapview)
 library(tidyverse)
 library(lubridate)
+library(openair)
+####netatmo####
+#create spatial points dataframe with Netatmo Temp for a certain time
+setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_bearbeitet/Netatmo/")
+netatmo=read.csv(file="Netatmo_2020.csv", header=T)
+#remove empty columns
+netatmo<-netatmo[,-c(1,38)]
+netatmo$datetime<-as.POSIXct(netatmo$datetime)
+#remove x in front of colnames
+colnames(netatmo)[1:36]<-substr(colnames(netatmo)[1:36], start=2, 
+                          stop=nchar(colnames(netatmo)[1:36]))
+#replace point with doublepoint so that names match
+colnames(netatmo)<-gsub(colnames(netatmo), pattern = "[.]", replacement=":")
+#load metadata with spatial information
+setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_roh/Meteo_Daten/Netatmo/Temperature/data_2020/")
+netatmo_metadata<-read.csv(file="stations_2.csv", header=T)
+#get metadata from netatmo devices  actually used (by names of devices in list)
+names=data.frame("device_id"=colnames(netatmo)[1:36])
+#merge metadata by device id
+merge_metadata=merge(netatmo_metadata, names,by = "device_id")
+#create metadata subset for merge
+netatmo_metadata_subset <- merge_metadata[ , names(merge_metadata) %in% c("lat", "lon")]
+rownames(netatmo_metadata_subset)<-merge_metadata$device_id
+netatmo_metadata_subset$index<-rep("Netatmo")
+#change order of columns to match logger metadata
+netatmo_metadata_subset<-netatmo_metadata_subset[,c(2,1,3)]
+names(netatmo_metadata_subset)<-c("Lat", "Lon", "index")
+####Logger####
 #create spatial points dataframe with Logger Temp for a certain time
 setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_bearbeitet/Temp_Logger")
 #load logger data
 logger=read.csv(file="Logger_2020.csv", header=T)
 logger=logger[,-1] #remove first column that contained rownames
 colnames(logger)[1:32]=substr(colnames(logger)[1:32], start=2, stop=10)
-logger$datetime<-as.POSIXct(logger$datetime)
+
+#average logger data by hour
 #load coordinates of logger
 #read in metadata
 setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_roh/Temp_Logger/")
@@ -22,6 +51,10 @@ des=read_excel(path = "Sensortabelle_Kartierung_Stand_22.07.2020_DL_ohne_meta.xl
 #exclude water temp logger
 waterlogger=des$Logger_ID[des$Loggertyp=="WL"]
 logger <- logger[ , ! names(logger) %in% c(waterlogger, "69")] 
+
+logger$date<-as.POSIXct(logger$datetime)
+logger=timeAverage(logger,avg.time = "hour" )
+names(logger)[1]<-"datetime"
 #load modis times and dates to match with logger temp
 setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_bearbeitet/FE_LST/")
 aqua<-read.csv(file="aqua_processed/aqua_times.csv")
@@ -29,13 +62,13 @@ aqua$datetime<- as.POSIXct(aqua$datetime)
 terra<-read.csv(file="terra_processed/terra_times.csv")
 terra$datetime<- as.POSIXct(terra$datetime)
 #round time to nearest 10 mins
-aqua$datetime_round<- round_date(aqua$datetime,unit="10 minutes")
-terra$datetime_round<-round_date(terra$datetime,unit="10 minutes")
+aqua$datetime_round<- round_date(aqua$datetime,unit="hours")
+terra$datetime_round<-round_date(terra$datetime,unit="hours")
 #bind together
 modis<-rbind(aqua, terra)
 #create a metadata table for logger
 #set ID as first column
-metadata=data.frame("Logger_ID"=as.integer(colnames(logger)[1:26]))
+metadata=data.frame("Logger_ID"=as.integer(colnames(logger)[2:27]))
 #get metadata from loggers actually used (by names of loggers in list)
 metadata=merge(metadata, des,by = "Logger_ID")
 #correct lat/lon values
@@ -44,27 +77,35 @@ metadata$Lon=metadata$Lon/1000000
 #create metadata subset for merge
 metadata_subset <- metadata[ , names(metadata) %in% c("Lat", "Lon")]
 rownames(metadata_subset)<-metadata$Logger_ID
+metadata_subset$index<-rep("Logger")
+####combine logger and Netatmo data####
+all_metadata<-rbind(metadata_subset, netatmo_metadata_subset)
+all_temp=inner_join(logger, netatmo, by="datetime")
+str(all_metadata)
+str(all_temp)
+
 #create dataframe per time
+which(colnames(all_temp)=="datetime")
 for(i in 1:length(modis$filename)){
-  if(any(logger$datetime==modis$datetime_round[i], na.rm = T))
+  if(any(all_temp$datetime==modis$datetime_round[i], na.rm = T))
   {if(i==1){
-    logger_match<-list()
-    temp_dat<-data.frame(ID<-as.character(colnames(logger)[1:length(colnames(logger))-1]), 
-         temperature<-t(logger[logger$datetime==modis$datetime_round[i],
-                               1:ncol(logger)-1]))
-    logger_match[[i]]<-merge(metadata_subset,temp_dat, by="row.names" )
-    names(logger_match[[i]])<-c("rownames", "Lat", "Lon", "Logger_ID", "Temperature")
-    names(logger_match)[[i]]<-modis$filename[i]
+    all_temp_match<-list()
+    temp_dat<-data.frame(ID<-as.character(colnames(all_temp)[-1]), 
+                         temperature<-t(all_temp[all_temp$datetime==modis$datetime_round[i],-1]))
+    all_temp_match[[i]]<-merge(all_metadata, temp_dat, by="row.names" )
+    names(all_temp_match[[i]])<-c("rownames", "Lat", "Lon","index", "Logger_ID", "Temperature")
+    names(all_temp_match)[[i]]<-modis$filename[i]
   }else{
-    temp_dat<-data.frame(ID<-as.character(colnames(logger)[1:length(colnames(logger))-1]), 
-                         temperature<-t(logger[logger$datetime==modis$datetime_round[i],
-                                               1:ncol(logger)-1]))
-    logger_match[[i]]<-merge(metadata_subset,temp_dat, by="row.names" )
-    names(logger_match[[i]])<-c("rownames", "Lat", "Lon", "Logger_ID", "Temperature")
-    names(logger_match)[[i]]<-modis$filename[i]
+    temp_dat<-data.frame(ID<-as.character(colnames(all_temp)[-1]), 
+                         temperature<-t(all_temp[all_temp$datetime==modis$datetime_round[i],-1]))
+    all_temp_match[[i]]<-merge(all_metadata,temp_dat, by="row.names" )
+    names(all_temp_match[[i]])<-c("rownames", "Lat", "Lon","index", "Logger_ID", "Temperature")
+    names(all_temp_match)[[i]]<-modis$filename[i]
   }
   }else{}
 }
+
+####create spatialdataframe####
 #add Temperature to metadata
 #metadata$Temperature=NA
 #for(i in as.integer(colnames(logger)[1:26])){
@@ -73,17 +114,19 @@ for(i in 1:length(modis$filename)){
 #}
 
 #remove empty list entries
-logger_match = logger_match[-which(sapply(logger_match, is.null))]
+all_temp_match = all_temp_match[-which(sapply(all_temp_match, is.null))]
 #create spatialpointsdataframe with logger coordinates
-for(i in 1:length(logger_match)){
+for(i in 1:length(all_temp_match)){
   if(i ==1){
-    spatial_list=logger_match
+    spatial_list=all_temp_match
     spatial_list[[i]]<-SpatialPointsDataFrame(coords =spatial_list[[i]][,2:3], 
-                                              data=data.frame(Temp=spatial_list[[i]][,5]))
+                                              data=data.frame(Temp=spatial_list[[i]][,6]))
   }else{
     spatial_list[[i]]<-SpatialPointsDataFrame(coords =spatial_list[[i]][,2:3],
-                                              data=data.frame(Temp=spatial_list[[i]][,5]))
+                                              data=data.frame(Temp=spatial_list[[i]][,6]))
   }
 }
 
-#match temperature for a certain coordinate by logger ID
+#save workspace as list
+setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_bearbeitet")
+save.image(file="SpatialPoints_Temp_Data")
