@@ -56,7 +56,7 @@ values(modis_celsius[[1]])
 values(modis_celsius[[2]])
 #crop to muenster
 gadm <- getData('GADM', country='DEU', level=2)
-gadm <- gadm[gadm$NAME_2=="Münster",]
+gadm <- gadm[gadm$NAME_2=="MÃ¼nster",]
 gadm_sf <- as(gadm,"sf")
 mapview(gadm_sf)
 #check if crs are matching
