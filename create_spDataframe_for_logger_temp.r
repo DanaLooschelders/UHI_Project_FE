@@ -117,20 +117,50 @@ for(i in 1:length(modis$filename)){
 #remove empty list entries
 all_temp_match = all_temp_match[-which(sapply(all_temp_match, is.null))]
 #create spatialpointsdataframe with logger coordinates
+
 for(i in 1:length(all_temp_match)){
   if(i ==1){
     spatial_list=all_temp_match
-    spatial_list[[i]]<-SpatialPointsDataFrame(coords =spatial_list[[i]][,2:3], 
-                                              data=data.frame(Temp=spatial_list[[i]][,6]))
+    spatial_list[[i]]<-SpatialPointsDataFrame(coords=spatial_list[[i]][,c(3,2)], 
+                                              data=data.frame(Temp=spatial_list[[i]][,6]),
+                                              proj4string=CRS(as.character(crs(gadm))))
+    
   }else{
-    spatial_list[[i]]<-SpatialPointsDataFrame(coords =spatial_list[[i]][,2:3],
-                                              data=data.frame(Temp=spatial_list[[i]][,6]))
+    spatial_list[[i]]<-SpatialPointsDataFrame(coords=spatial_list[[i]][,c(3,2)],
+                                              data=data.frame(Temp=spatial_list[[i]][,6]),
+                                              proj4string=CRS(as.character(crs(gadm))))
   }
 }
 
+spTransform(spatial_list[[1]], CRSobj = crs(gadm))
 #save workspace as list
 setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_bearbeitet")
 save.image(file="SpatialPoints_Temp_Data")
 
-range(spatial_list[[1]]$Temp)
-mapview(spatial_list[[5]])
+#test to plot modis with training data
+#get modis sample
+setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_bearbeitet/FE_LST/aqua_processed_resampled/")
+modisfiles=list.files(pattern="*.tif")
+modis_r=raster(modisfiles[8])
+ncell(modis_r)
+
+setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_bearbeitet/FE_LST/aqua_processed/")
+modisfiles=list.files(pattern="*.tif")
+modis_nr=raster(modisfiles[8])
+ncell(modis_nr)
+
+
+modisfiles=list.files(pattern="*.tif")
+modis=raster(modisfiles[8])
+#plot
+mapview(modis)+mapview(spatial_list[[1]])
+
+#count points in cell
+#plot
+test_count <- rasterize(spatial_list[[1]], modis, fun="count")
+plot(test_count)
+#table
+test=na.omit(cbind(1:ncell(test_count), values(test_count)))
+#table version 2
+x <- rasterToPoints(test_count)
+z <- cbind(cell=cellFromXY(test_count, x[,1:2]), value=x[,3])

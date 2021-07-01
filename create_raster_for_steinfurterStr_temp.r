@@ -3,17 +3,15 @@
 #load librarys
 library(raster)
 library(sp)
-library(MODIS)
-library(MODISTools)
 library(rgdal)
 library(gdalUtils)
 library(sf)
 library(mapview)
 
 #get modis sample
-setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_roh/FE_LST/MODIS/PROCESSED/Processed/")
+setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_bearbeitet/FE_LST/aqua_processed_resampled/")
 modisfiles=list.files(pattern="*.tif")
-modis=raster(modisfiles[1])
+modis=raster(modisfiles[8])
 
 #get shape of polygon
 gadm <- getData('GADM', country='DEU', level=2)
