@@ -193,13 +193,35 @@ terra<-lapply(filelist, raster)
 names(terra)<-names
 #read in file with names
 terra_times<-read.csv(file="terra_times.csv")
-
+ncell(terra[[1]])
 #resample terra
 terra_res<-lapply(terra, function(x) disaggregate(x=x, fact=10))
+ncell(terra_res[[1]])
 #write raster
 setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_bearbeitet/FE_LST/terra_processed_resampled/")
 
 for(i in 1:length(terra_res)){
-  writeRaster(x=terra[[i]],filename=paste("terra_",names(terra_res[[i]]),".tif"),
+  writeRaster(x=terra_res[[i]],filename=paste("terra_",names(terra_res[[i]]),".tif"),
+              overwrite=T, format="GTiff")
+}
+
+#do the same for aqua
+#load data to resample
+setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_bearbeitet/FE_LST/aqua_processed")
+filelist <- list.files(full.names = T,pattern=".tif$")
+names<-substr(filelist, start=10, stop=31)
+aqua<-lapply(filelist, raster)
+names(aqua)<-names
+#read in file with names
+aqua_times<-read.csv(file="aqua_times.csv")
+ncell(aqua[[1]])
+#resample aqua
+aqua_res<-lapply(aqua, function(x) disaggregate(x=x, fact=10))
+ncell(aqua_res[[1]])
+#write raster
+setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_bearbeitet/FE_LST/aqua_processed_resampled/")
+
+for(i in 1:length(aqua_res)){
+  writeRaster(x=aqua_res[[i]],filename=paste("aqua_",names(aqua_res[[i]]),".tif"),
               overwrite=T, format="GTiff")
 }

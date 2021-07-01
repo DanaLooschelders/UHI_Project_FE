@@ -151,7 +151,7 @@ ncell(modis_nr)
 
 
 modisfiles=list.files(pattern="*.tif")
-modis=raster(modisfiles[8])
+modis=raster(modisfiles[1])
 #plot
 mapview(modis)+mapview(spatial_list[[1]])
 
