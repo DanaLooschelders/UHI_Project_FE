@@ -16,4 +16,4 @@ model_ffs <- CAST::ffs(training_dat[,c("terra__terra__MOD11A1_A2020189_12_47__",
                        savePrediction=TRUE)
 model_ffs
 
-test_predict<-predict(pred_stack, model_ffs)
+test_predict<-predict(pred_stack, model_ffs,savePrediction=TRUE)
