@@ -5,12 +5,13 @@ traintemps <- CreateSpacetimeFolds(total_stack,
                                    k=10)
 #choice of k
 #complete cases
-names(training_dat)
+#sicherstellen, dass keine NAs in Daten sind
+total_stack <- total_stack[complete.cases(total_stack),]
 #train model
-model_ffs <- CAST::ffs(training_dat[,c("modis",
+model_ffs <- CAST::ffs(total_stack[,c("modis",
                                        "copernicus","dlm",
                                        "ucz")], #predictors
-                       training_dat$temp, #response
+                       total_stack$temp, #response
                        method="rf", #randomForest
                        metric="RMSE", #RMSE bc it is a regression model (see ?train in caret)
                        ntree=500, #number of trees
