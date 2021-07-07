@@ -1,13 +1,16 @@
 #create space folds
-traintemps <- CreateSpacetimeFolds(training_dat,
+traintemps <- CreateSpacetimeFolds(total_stack,
                                    spacevar="ID", #use row.name as ID
-                                   k=3)
+                                   timevar="time", #use time as ID
+                                   k=10)
+#choice of k
+#complete cases
 names(training_dat)
 #train model
-model_ffs <- CAST::ffs(training_dat[,c("terra__terra__MOD11A1_A2020189_12_47__",
-                                       "copernicus_tree_cover_MS_100m","dlm_raster",
-                                       "ucz_ms_100m")], #predictors
-                       training_dat$Temp, #response
+model_ffs <- CAST::ffs(training_dat[,c("modis",
+                                       "copernicus","dlm",
+                                       "ucz")], #predictors
+                       training_dat$temp, #response
                        method="rf", #randomForest
                        metric="RMSE", #RMSE bc it is a regression model (see ?train in caret)
                        ntree=500, #number of trees
