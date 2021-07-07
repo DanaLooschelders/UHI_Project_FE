@@ -20,4 +20,9 @@ model_ffs <- CAST::ffs(total_stack[,c("modis",
                        savePrediction=TRUE)
 model_ffs
 
+plot(model_ffs) # see tuning results
+plot(varImp(model_ffs)) # variablenwichtigkeit
+setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Modelle")
+saveRDS(model_ffs,file="ffs_Model_2021-07-07.RDS") # modell speichern!
+
 test_predict<-predict(pred_stack, model_ffs,savePrediction=TRUE)
