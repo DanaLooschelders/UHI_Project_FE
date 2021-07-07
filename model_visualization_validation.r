@@ -1,16 +1,30 @@
 #Model validation and visualization
+#test model for one modis file
+modis <- raster("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_bearbeitet/FE_LST/terra_processed_resampled/terra_ terra__MOD11A1_A2020189_12_47_ .tif")
+pred_stack <- stack(modis,pred_resample)
+names(pred_stack)<-c("modis", "copernicus", "dlm", "ucz")
+#predict
+test_predict<-predict(pred_stack, model_ffs, savePrediction=TRUE)
+
+#visualize
 map <- tm_shape(test_predict,
                 raster.downsample = FALSE) +
   tm_raster(title = "Air Temperature")+
-  tm_scale_bar(bg.color="white")+
+  tm_scale_bar(bg.color="white",position = c("right", "bottom"))+
   tm_grid(n.x=4,n.y=4,projection="+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs")+
   tm_layout(legend.position = c("left","bottom"),
             legend.bg.color = "white",
-            legend.bg.alpha = 0.8)+
-  tm_compass()
+            legend.bg.alpha = 0.8,
+            legend.outside=T)+
+  tm_compass(position = c("left","bottom"))
 map
 
 model_ffs
+
+#plot variable importance
+plot(model_ffs) # see tuning results
+plot(varImp(model_ffs)) # variablenwichtigkeit
+
 
 #model performance
 plot_ffs(model_ffs)
