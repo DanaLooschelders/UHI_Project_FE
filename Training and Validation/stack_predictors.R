@@ -63,16 +63,14 @@ training_dat <- training_dat[complete.cases(training_dat$Temp),]
 modis_times<-rbind(terra_times, aqua_times)
 #load static predictor stack
 pred<-stack("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_bearbeitet/pred_stack.grd")
-meteo<-raster(paste("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_bearbeitet/Meteo_data_Steinf/", 
-                    "Meteo_", names(spatial_list)[1], sep=""))
-i=names(spatial_list)[1]
+
 #change extent o pred stack
 modis_test <- raster("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_bearbeitet/FE_LST/terra_processed_resampled/terra_ terra__MOD11A1_A2020189_12_47_ .tif")
 extent(pred)<-extent(modis_test)
 #remoce temp items
 remove(total_stack, total_stack_temp)
 #load dynamic predictors (modis, temp, meteo from Steinf)
-for(i in names(spatial_list)){
+for(i in names(spatial_list)[1:2]){
   if(!exists("total_stack")){
     #split for terra and aqua
     if(substr(i,start = 1, stop=7)=="MYD11A1"){ #aqua
@@ -85,7 +83,7 @@ for(i in names(spatial_list)){
       #resample modis
       pred_resample <- resample(pred,modis)
       #load meteo raster stack
-      meteo<-raster(paste("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_bearbeitet/Meteo_data_Steinf/", "Meteo_", i, sep=""))
+      meteo<-stack(paste("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_bearbeitet/Meteo_data_Steinf/", "Meteo_", i, sep=""))
       #stack modis and pred_stack and meteo_stack
       pred_stack <- stack(modis,  pred_resample, meteo)
       #extract predictor values for trainin gdata
@@ -99,8 +97,9 @@ for(i in names(spatial_list)){
       #rename
       total_stack<-extr
       #change colnames
-      colnames(total_stack)<-c("ID", "modis", "copernicus", "dlm", "ucz", "temp", "time")
-      
+      colnames(total_stack)<-c("ID", "modis", "copernicus", "dlm", "ucz", 
+                               "meteo_RH", "meteo_Temp", "meteo_SWup", 
+                               "temp", "time")
     }else{ #terra
       #index logger list to get one element
       logger_dat<-spatial_list[grep(names(spatial_list),pattern=i)]
@@ -111,7 +110,7 @@ for(i in names(spatial_list)){
       #resample modis
       pred_resample <- resample(pred,modis)
       #load meteo raster stack
-      meteo<-raster(paste("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_bearbeitet/Meteo_data_Steinf/", "Meteo_", names(spatial_list)[i], sep=""))
+      meteo<-stack(paste("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_bearbeitet/Meteo_data_Steinf/", "Meteo_", i, sep=""))
       #stack modis and pred_stack and meteo_stack
       pred_stack <- stack(modis,pred_resample, meteo)
       #extract predictor values for trainin gdata
@@ -125,7 +124,9 @@ for(i in names(spatial_list)){
       #rename
       total_stack<-extr
       #change colnames
-      colnames(total_stack)<-c("ID", "modis", "copernicus", "dlm", "ucz", "temp", "time")
+      colnames(total_stack)<-c("ID", "modis", "copernicus", "dlm", "ucz", 
+                               "meteo_RH", "meteo_Temp", "meteo_SWup", 
+                               "temp", "time")
       
     }
   }else{
@@ -140,7 +141,7 @@ for(i in names(spatial_list)){
       #resample modis
       pred_resample <- resample(pred,modis)
       #load meteo raster stack
-      meteo<-raster(paste("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_bearbeitet/Meteo_data_Steinf/", "Meteo_", names(spatial_list)[i], sep=""))
+      meteo<-stack(paste("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_bearbeitet/Meteo_data_Steinf/", "Meteo_", i, sep=""))
       #stack modis and pred_stack and meteo_stack
       pred_stack <- stack(modis,pred_resample, meteo)
       #extract predictor values for trainin gdata
@@ -154,7 +155,9 @@ for(i in names(spatial_list)){
       #rename
       total_stack_temp<-extr
       #change colnames
-      colnames(total_stack_temp)<-c("ID", "modis", "copernicus", "dlm", "ucz", "temp", "time")
+      colnames(total_stack_temp)<-c("ID", "modis", "copernicus", "dlm", "ucz", 
+                               "meteo_RH", "meteo_Temp", "meteo_SWup", 
+                               "temp", "time")
       #rbind both dataframes
       total_stack<-rbind(total_stack, total_stack_temp)
     }else{ #terra
@@ -167,7 +170,7 @@ for(i in names(spatial_list)){
       #resample modis
       pred_resample <- resample(pred,modis)
       #load meteo raster stack
-      meteo<-raster(paste("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_bearbeitet/Meteo_data_Steinf/", "Meteo_", names(spatial_list)[i], sep=""))
+      meteo<-stack(paste("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_bearbeitet/Meteo_data_Steinf/", "Meteo_", i, sep=""))
       #stack modis and pred_stack and meteo_stack
       pred_stack <- stack(modis,pred_resample, meteo)
       #extract predictor values for trainin gdata
@@ -181,7 +184,9 @@ for(i in names(spatial_list)){
       #rename
       total_stack_temp<-extr
       #change colnames
-      colnames(total_stack_temp)<-c("ID", "modis", "copernicus", "dlm", "ucz", "temp", "time")
+      colnames(total_stack_temp)<-c("ID", "modis", "copernicus", "dlm", "ucz", 
+                               "meteo_RH", "meteo_Temp", "meteo_SWup", 
+                               "temp", "time")
       #rbind both dataframes
       total_stack<-rbind(total_stack, total_stack_temp)
     }
@@ -190,5 +195,5 @@ for(i in names(spatial_list)){
 
 str(total_stack$time)
 total_stack$time<-as.POSIXct(total_stack$time)
-
+setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_bearbeitet/")
 write.csv(total_stack, file="total_stack_data.csv")

@@ -50,6 +50,7 @@ meteo<-meteo[as.POSIXct(meteo$timestamp)%in%as.POSIXct(modis_times$datetime_10mi
 #use raster_Steinf as dummy raster
 output.names<-paste("Steinf_", modis_times$filename, sep="")
 setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_bearbeitet/Meteo_data_Steinf")
+i=1
 for(i in 1:nrow(meteo)){
     #Temperature
     raster_Steinf_temp<-raster_Steinf
@@ -62,10 +63,12 @@ for(i in 1:nrow(meteo)){
     values(raster_Steinf_SW_up)<-meteo$SUp_Avg[i]
     #stack values
     meteo_stack<-stack(raster_Steinf_RH, raster_Steinf_temp, raster_Steinf_SW_up)
+    #set layer names
+    names(meteo_stack)<-c("meteo_RH", "meteo_Temp", "meteo_SWup")
     #get matching modis name
     filename=modis_times$filename[modis_times$datetime_10min==meteo$timestamp[i]]
     #write raster into file
-    writeRaster(meteo_stack, filename = paste("Meteo_", filename, sep=""))
+    writeRaster(meteo_stack, filename = paste("Meteo_", filename, sep=""), overwrite=T)
 }
 
 
