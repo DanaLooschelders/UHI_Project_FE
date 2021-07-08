@@ -70,7 +70,7 @@ extent(pred)<-extent(modis_test)
 #remoce temp items
 remove(total_stack, total_stack_temp)
 #load dynamic predictors (modis, temp, meteo from Steinf)
-for(i in names(spatial_list)[1:2]){
+for(i in names(spatial_list)){
   if(!exists("total_stack")){
     #split for terra and aqua
     if(substr(i,start = 1, stop=7)=="MYD11A1"){ #aqua
@@ -81,7 +81,7 @@ for(i in names(spatial_list)[1:2]){
       #load corresponding modis scene
       modis <- raster(paste("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_bearbeitet/FE_LST/aqua_processed_resampled/aqua_ aqua__",i,"_ .tif", sep=""))
       #resample modis
-      pred_resample <- resample(pred,modis)
+      pred_resample <- resample(pred,modis,method="ngb")
       #load meteo raster stack
       meteo<-stack(paste("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_bearbeitet/Meteo_data_Steinf/", "Meteo_", i, sep=""))
       #stack modis and pred_stack and meteo_stack
@@ -108,7 +108,7 @@ for(i in names(spatial_list)[1:2]){
       #load corresponding modis scene
       modis <- raster(paste("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_bearbeitet/FE_LST/terra_processed_resampled/terra_ terra__",i,"_ .tif", sep=""))
       #resample modis
-      pred_resample <- resample(pred,modis)
+      pred_resample <- resample(pred,modis,method="ngb")
       #load meteo raster stack
       meteo<-stack(paste("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_bearbeitet/Meteo_data_Steinf/", "Meteo_", i, sep=""))
       #stack modis and pred_stack and meteo_stack
@@ -139,7 +139,7 @@ for(i in names(spatial_list)[1:2]){
       #load corresponding modis scene
       modis <- raster(paste("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_bearbeitet/FE_LST/aqua_processed_resampled/aqua_ aqua__",i,"_ .tif", sep=""))
       #resample modis
-      pred_resample <- resample(pred,modis)
+      pred_resample <- resample(pred,modis,method="ngb")
       #load meteo raster stack
       meteo<-stack(paste("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_bearbeitet/Meteo_data_Steinf/", "Meteo_", i, sep=""))
       #stack modis and pred_stack and meteo_stack
@@ -168,7 +168,7 @@ for(i in names(spatial_list)[1:2]){
       #load corresponding modis scene
       modis <- raster(paste("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_bearbeitet/FE_LST/terra_processed_resampled/terra_ terra__",i,"_ .tif", sep=""))
       #resample modis
-      pred_resample <- resample(pred,modis)
+      pred_resample <- resample(pred,modis,method="ngb")
       #load meteo raster stack
       meteo<-stack(paste("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_bearbeitet/Meteo_data_Steinf/", "Meteo_", i, sep=""))
       #stack modis and pred_stack and meteo_stack

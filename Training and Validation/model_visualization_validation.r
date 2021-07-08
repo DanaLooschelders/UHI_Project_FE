@@ -1,8 +1,13 @@
 #Model validation and visualization
 #test model for one modis file
 modis <- raster("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_bearbeitet/FE_LST/terra_processed_resampled/terra_ terra__MOD11A1_A2020189_12_47_ .tif")
-pred_stack <- stack(modis,pred_resample)
-names(pred_stack)<-c("modis", "copernicus", "dlm", "ucz")
+#load meteo raster stack
+meteo<-stack(paste("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_bearbeitet/Meteo_data_Steinf/", "Meteo_", "MOD11A1_A2020189_12_47", sep=""))
+#stack modis and pred_stack and meteo_stack
+pred_stack <- stack(modis,pred_resample, meteo)
+
+names(pred_stack)<-c("modis", "copernicus", "dlm", "ucz", 
+                     "meteo_RH", "meteo_Temp", "meteo_SWup")
 #predict
 test_predict<-predict(pred_stack, model_ffs, savePrediction=TRUE)
 
@@ -51,7 +56,7 @@ model_ffs$metric
 model_ffs$selectedvars_perf
 
 #plot areas inside AOA
-test_predict[test_aoa$AOA == 0] <- NA
+test_predict2<-test_predict[test_aoa$AOA == 0] <- NA
 
 map <- tm_shape(test_predict,
                 raster.downsample = FALSE) +
