@@ -1,8 +1,10 @@
 #Model validation and visualization
 #test model for one modis file
 modis <- raster("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_bearbeitet/FE_LST/terra_processed_resampled/terra_ terra__MOD11A1_A2020189_12_47_ .tif")
+modis <- raster("/Users/amelie/Desktop/LOEK/MSc/M8/Projekt/Sciebo/Daten_bearbeitet/FE_LST/terra_processed_resampled/terra_ terra__MOD11A1_A2020189_12_47_ .tif")
 #load meteo raster stack
 meteo<-stack(paste("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_bearbeitet/Meteo_data_Steinf/", "Meteo_", "MOD11A1_A2020189_12_47", sep=""))
+meteo<-stack(paste("/Users/amelie/Desktop/LOEK/MSc/M8/Projekt/Sciebo/Daten_bearbeitet/Meteo_data_Steinf/", "Meteo_", "MOD11A1_A2020189_12_47", sep=""))
 #stack modis and pred_stack and meteo_stack
 pred_stack <- stack(modis,pred_resample, meteo)
 
@@ -29,7 +31,6 @@ model_ffs
 #plot variable importance
 plot(model_ffs) # see tuning results
 plot(varImp(model_ffs)) # variablenwichtigkeit
-
 
 #model performance
 plot_ffs(model_ffs)
@@ -71,3 +72,55 @@ map <- tm_shape(test_predict,
                 col="black",
                 labels = "Outside AOA")
 map
+
+######
+library(MODIS)
+library(MODISTools)
+library(sf)
+EarthdataLogin("Peppermint_Patty", 
+               "MilchreisApfelmus.1")
+
+lap = "/Users/amelie/Desktop/LOEK/MSc/M8/Projekt/Sciebo/Daten_bearbeitet/Vailiderung_modis"
+MODISoptions(lap, outDirPath = file.path(lap, "PROCESSED")
+            , MODISserverOrder = c("LPDAAC", "LAADS"), quiet = TRUE)
+
+### download data##
+getHdf("MOD11A1",begin = "2021.06.18", end = "2021.06.22",
+       tileH = 18, tileV = 3)
+
+### process data- extract LST 
+runGdal(job="LST_Germany","MOD11A1",begin = "2021.06.18", end = "2021.06.22",
+        tileH = 18, tileV = 3
+        , SDSstring = "100000000000")
+
+modis_19_06 <- raster("/Users/amelie/Desktop/LOEK/MSc/M8/Projekt/Sciebo/Daten_bearbeitet/Vailiderung_modis/PROCESSED/LST_Germany/MOD11A1.A2021170.LST_Day_1km.tif")
+modis_19_06_celsius <- (modis_19_06 *0.02-273)
+
+#crop to muenster
+gadm <- getData('GADM', country='DEU', level=2)
+gadm <- gadm[gadm$NAME_2=="Münster",]
+gadm <- as(gadm,"sf")
+gadm <- st_transform(gadm,st_crs(modis_19_06_celsius)) 
+modis_19_06_crop <- crop(modis_19_06_celsius, gadm)
+
+setwd("/Users/amelie/Desktop/LOEK/MSc/M8/Projekt/Sciebo/Daten_bearbeitet/Vailiderung_modis")
+writeRaster(modis_19_06_crop, "modis_19062021")
+
+#load 
+modis_2021 <- raster("modis_19062021")
+model <- readRDS("/Users/amelie/Desktop/LOEK/MSc/M8/Projekt/Sciebo/Modelle/ffs_Model_2021-07-07.RDS")
+names(modis_2021)<-c("modis")
+predict_2021 <-predict(modis_2021, model, savePrediction=TRUE)
+
+map <- tm_shape(predict_2021,
+                raster.downsample = FALSE) +
+  tm_raster(title = "Air Temperature")+
+  tm_scale_bar(bg.color="white",position = c("right", "bottom"))+
+  tm_grid(n.x=4,n.y=4,projection="+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs")+
+  tm_layout(legend.position = c("left","bottom"),
+            legend.bg.color = "white",
+            legend.bg.alpha = 0.8,
+            legend.outside=T)+
+  tm_compass(position = c("left","bottom"))
+map
+

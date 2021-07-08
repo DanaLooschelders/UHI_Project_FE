@@ -1,0 +1,26 @@
+[general]
+creator=R package 'raster'
+created=2021-07-08 19:58:05
+[georeference]
+nrows=26
+ncols=22
+xmin=512423.864525729
+ymin=5764536.8195563
+xmax=532809.624054781
+ymax=5788629.08081791
+projection=+proj=sinu +lon_0=0 +x_0=0 +y_0=0 +R=6371007.181 +units=m +no_defs
+[data]
+datatype=FLT4S
+byteorder=little
+nbands=1
+bandorder=BIL
+categorical=FALSE
+minvalue=24.08
+maxvalue=38.04
+nodatavalue=-3.4e+38
+[legend]
+legendtype=
+values=
+color=
+[description]
+layername=MOD11A1.A2021170.LST_Day_1km
