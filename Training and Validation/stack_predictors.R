@@ -63,15 +63,15 @@ training_dat <- training_dat[complete.cases(training_dat$Temp),]
 modis_times<-rbind(terra_times, aqua_times)
 #load static predictor stack
 pred<-stack("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_bearbeitet/pred_stack.grd")
-
+meteo<-raster(paste("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_bearbeitet/Meteo_data_Steinf/", 
+                    "Meteo_", names(spatial_list)[1], sep=""))
+i=names(spatial_list)[1]
 #change extent o pred stack
 modis_test <- raster("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_bearbeitet/FE_LST/terra_processed_resampled/terra_ terra__MOD11A1_A2020189_12_47_ .tif")
 extent(pred)<-extent(modis_test)
 #remoce temp items
 remove(total_stack, total_stack_temp)
-i <- names(spatial_list)[4]
-
-#load dynamic predictors (modis, temp)
+#load dynamic predictors (modis, temp, meteo from Steinf)
 for(i in names(spatial_list)){
   if(!exists("total_stack")){
     #split for terra and aqua
@@ -84,10 +84,12 @@ for(i in names(spatial_list)){
       modis <- raster(paste("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_bearbeitet/FE_LST/aqua_processed_resampled/aqua_ aqua__",i,"_ .tif", sep=""))
       #resample modis
       pred_resample <- resample(pred,modis)
-      #stack modis and pred_stack
-      pred_stack <- stack(modis,pred_resample)
+      #load meteo raster stack
+      meteo<-raster(paste("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_bearbeitet/Meteo_data_Steinf/", "Meteo_", i, sep=""))
+      #stack modis and pred_stack and meteo_stack
+      pred_stack <- stack(modis,  pred_resample, meteo)
       #extract predictor values for trainin gdata
-      extr <- extract(pred_stack,logger_dat,df=TRUE)
+      extr <- raster::extract(pred_stack,logger_dat,df=TRUE)
       #create ID by row names
       logger_dat$ID<-row.names(logger_dat)
       #merge
@@ -108,10 +110,12 @@ for(i in names(spatial_list)){
       modis <- raster(paste("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_bearbeitet/FE_LST/terra_processed_resampled/terra_ terra__",i,"_ .tif", sep=""))
       #resample modis
       pred_resample <- resample(pred,modis)
-      #stack modis and pred_stack
-      pred_stack <- stack(modis,pred_resample)
+      #load meteo raster stack
+      meteo<-raster(paste("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_bearbeitet/Meteo_data_Steinf/", "Meteo_", names(spatial_list)[i], sep=""))
+      #stack modis and pred_stack and meteo_stack
+      pred_stack <- stack(modis,pred_resample, meteo)
       #extract predictor values for trainin gdata
-      extr <- extract(pred_stack,logger_dat,df=TRUE)
+      extr <- raster::extract(pred_stack,logger_dat,df=TRUE)
       #create ID by row names
       logger_dat$ID<-row.names(logger_dat)
       #merge
@@ -135,10 +139,12 @@ for(i in names(spatial_list)){
       modis <- raster(paste("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_bearbeitet/FE_LST/aqua_processed_resampled/aqua_ aqua__",i,"_ .tif", sep=""))
       #resample modis
       pred_resample <- resample(pred,modis)
-      #stack modis and pred_stack
-      pred_stack <- stack(modis,pred_resample)
+      #load meteo raster stack
+      meteo<-raster(paste("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_bearbeitet/Meteo_data_Steinf/", "Meteo_", names(spatial_list)[i], sep=""))
+      #stack modis and pred_stack and meteo_stack
+      pred_stack <- stack(modis,pred_resample, meteo)
       #extract predictor values for trainin gdata
-      extr <- extract(pred_stack,logger_dat,df=TRUE)
+      extr <- raster::extract(pred_stack,logger_dat,df=TRUE)
       #create ID by row names
       logger_dat$ID<-row.names(logger_dat)
       #merge
@@ -160,10 +166,12 @@ for(i in names(spatial_list)){
       modis <- raster(paste("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_bearbeitet/FE_LST/terra_processed_resampled/terra_ terra__",i,"_ .tif", sep=""))
       #resample modis
       pred_resample <- resample(pred,modis)
-      #stack modis and pred_stack
-      pred_stack <- stack(modis,pred_resample)
+      #load meteo raster stack
+      meteo<-raster(paste("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_bearbeitet/Meteo_data_Steinf/", "Meteo_", names(spatial_list)[i], sep=""))
+      #stack modis and pred_stack and meteo_stack
+      pred_stack <- stack(modis,pred_resample, meteo)
       #extract predictor values for trainin gdata
-      extr <- extract(pred_stack,logger_dat,df=TRUE)
+      extr <- raster::extract(pred_stack,logger_dat,df=TRUE)
       #create ID by row names
       logger_dat$ID<-row.names(logger_dat)
       #merge
