@@ -25,3 +25,4 @@ model_ffs
 setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Modelle")
 saveRDS(model_ffs,file="ffs_Model_2021-07-08.RDS") # modell speichern!
 
+model_1<-readRDS(file="ffs_Model_2021-07-07.RDS")

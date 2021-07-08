@@ -55,6 +55,7 @@ model_ffs$selectedvars_perf_SE
 model_ffs$metric
 model_ffs$selectedvars_perf
 
+model_1$selectedvars
 #plot areas inside AOA
 test_predict2<-test_predict[test_aoa$AOA == 0] <- NA
 
