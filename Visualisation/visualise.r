@@ -9,10 +9,9 @@ map_logger <- tm_shape(shp = gadm)+
   tm_dots(title = "Logger", size = 0.3, legend.show = T)+
   tm_scale_bar(bg.color="white",position = c("right", "bottom"))+
   tm_grid(n.x=4,n.y=4,projection="+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs")+
-  tm_layout(legend.position = c("left","bottom"),
+  tm_layout(legend.position = c("right","top"),
             legend.bg.color = "white",
-            legend.bg.alpha = 0.8,
-            legend.outside=T)+
+            legend.bg.alpha = 0.8)+
   tm_add_legend(type = "symbol",
                 col="black",
                 labels = "Logger")+
