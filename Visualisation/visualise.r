@@ -1,27 +1,131 @@
-#visualize prediction
-map <- tm_shape(test_predict,
-                raster.downsample = FALSE) +
-  tm_raster(title = "Air Temperature")+
+library(tmap)
+library(tmaptools)
+setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Maps")
+#logger distribution
+map_logger <- tm_shape(shp = gadm)+
+  tm_polygons()+
+  tm_shape(spatial_list[[1]],
+           raster.downsample = FALSE) +
+  tm_dots(title = "Logger", size = 0.3, legend.show = T)+
   tm_scale_bar(bg.color="white",position = c("right", "bottom"))+
   tm_grid(n.x=4,n.y=4,projection="+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs")+
   tm_layout(legend.position = c("left","bottom"),
             legend.bg.color = "white",
             legend.bg.alpha = 0.8,
             legend.outside=T)+
+  tm_add_legend(type = "symbol",
+                col="black",
+                labels = "Logger")+
   tm_compass(position = c("left","bottom"))
-map
+map_logger
 
-map <- tm_shape(test_predict,
-                raster.downsample = FALSE) +
-  tm_raster(title = "LUC")+
+tmap_save(map_logger, "Logger_points.png")
+
+#visualize model 1 day
+map <-   tm_shape(shp = gadm)+
+  tm_polygons(col="black")+
+  tm_shape(model_1_day_predict,
+           raster.downsample = FALSE) +
+  tm_raster(title = "Predicted Air \nTemperature [°C]")+
   tm_scale_bar(bg.color="white")+
   tm_grid(n.x=4,n.y=4,projection="+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs")+
   tm_layout(legend.position = c("left","bottom"),
             legend.bg.color = "white",
-            bg.color="black",
-            legend.bg.alpha = 0.8)+
+            bg.color="white",
+            legend.bg.alpha = 0.8,
+            legend.outside=T,
+            legend.title.size = 1,
+            legend.outside.size = 0.5)+
   tm_add_legend(type = "fill",
                 col="black",
-                labels = "Outside AOA")
+                labels = "Outside AOA")+
+  tm_compass(position = c("left","bottom"))
 map
-#visualise prediction with aoa
+
+tmap_save(map, "map_model_1_day.png")
+#visualize model 1 night
+map <-   tm_shape(shp = gadm)+
+  tm_polygons(col="black")+
+  tm_shape(model_1_night_predict,
+           raster.downsample = FALSE) +
+  tm_raster(title = "Predicted Air \nTemperature [°C]")+
+  tm_scale_bar(bg.color="white")+
+  tm_grid(n.x=4,n.y=4,projection="+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs")+
+  tm_layout(legend.position = c("left","bottom"),
+            legend.bg.color = "white",
+            bg.color="white",
+            legend.bg.alpha = 0.8,
+            legend.outside=T,
+            legend.title.size = 1,
+            legend.outside.size = 0.5)+
+  tm_add_legend(type = "fill",
+                col="black",
+                labels = "Outside AOA")+
+  tm_compass(position = c("left","bottom"))
+map
+tmap_save(map, "map_model_1_night.png")
+#visualize model 2 day
+map <-   tm_shape(shp = gadm)+
+  tm_polygons(col="black")+
+  tm_shape(model_1_day_predict,
+           raster.downsample = FALSE) +
+  tm_raster(title = "Predicted Air \nTemperature [°C]")+
+  tm_scale_bar(bg.color="white")+
+  tm_grid(n.x=4,n.y=4,projection="+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs")+
+  tm_layout(legend.position = c("left","bottom"),
+            legend.bg.color = "white",
+            bg.color="white",
+            legend.bg.alpha = 0.8,
+            legend.outside=T,
+            legend.title.size = 1,
+            legend.outside.size = 0.5)+
+  tm_add_legend(type = "fill",
+                col="black",
+                labels = "Outside AOA")+
+  tm_compass(position = c("left","bottom"))
+map
+tmap_save(map, "map_model_2_day.png")
+#visualize model 2 day
+map <-   tm_shape(shp = gadm)+
+  tm_polygons(col="black")+
+  tm_shape(model_1_day_predict,
+           raster.downsample = FALSE) +
+  tm_raster(title = "Predicted Air \nTemperature [°C]")+
+  tm_scale_bar(bg.color="white")+
+  tm_grid(n.x=4,n.y=4,projection="+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs")+
+  tm_layout(legend.position = c("left","bottom"),
+            legend.bg.color = "white",
+            bg.color="white",
+            legend.bg.alpha = 0.8,
+            legend.outside=T,
+            legend.title.size = 1,
+            legend.outside.size = 0.5)+
+  tm_add_legend(type = "fill",
+                col="black",
+                labels = "Outside AOA")+
+  tm_compass(position = c("left","bottom"))
+map
+
+tmap_save(map, "map_model_2_day.png")
+
+##visualize model 2 night
+map <-   tm_shape(shp = gadm)+
+  tm_polygons(col="black")+
+  tm_shape(model_1_night_predict,
+           raster.downsample = FALSE) +
+  tm_raster(title = "Predicted Air \nTemperature [°C]")+
+  tm_scale_bar(bg.color="white")+
+  tm_grid(n.x=4,n.y=4,projection="+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs")+
+  tm_layout(legend.position = c("left","bottom"),
+            legend.bg.color = "white",
+            bg.color="white",
+            legend.bg.alpha = 0.8,
+            legend.outside=T,
+            legend.title.size = 1,
+            legend.outside.size = 0.5)+
+  tm_add_legend(type = "fill",
+                col="black",
+                labels = "Outside AOA")+
+  tm_compass(position = c("left","bottom"))
+map
+tmap_save(map, "map_model_2_night.png")
