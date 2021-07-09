@@ -1,4 +1,4 @@
-#visualize
+#visualize prediction
 map <- tm_shape(test_predict,
                 raster.downsample = FALSE) +
   tm_raster(title = "Air Temperature")+
@@ -24,3 +24,4 @@ map <- tm_shape(test_predict,
                 col="black",
                 labels = "Outside AOA")
 map
+#visualise prediction with aoa
