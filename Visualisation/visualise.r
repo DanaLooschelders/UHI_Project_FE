@@ -41,7 +41,7 @@ map <-   tm_shape(shp = gadm)+
   tm_compass(position = c("left","bottom"))
 map
 
-tmap_save(map, "map_model_1_day.png")
+tmap_save(map, "map_model_1_day.png", width=10, height=7)
 #visualize model 1 night
 map <-   tm_shape(shp = gadm)+
   tm_polygons(col="black")+
@@ -62,55 +62,34 @@ map <-   tm_shape(shp = gadm)+
                 labels = "Outside AOA")+
   tm_compass(position = c("left","bottom"))
 map
-tmap_save(map, "map_model_1_night.png")
-#visualize model 2 day
-map <-   tm_shape(shp = gadm)+
-  tm_polygons(col="black")+
-  tm_shape(model_1_day_predict,
-           raster.downsample = FALSE) +
-  tm_raster(title = "Predicted Air \nTemperature [°C]")+
-  tm_scale_bar(bg.color="white")+
-  tm_grid(n.x=4,n.y=4,projection="+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs")+
-  tm_layout(legend.position = c("left","bottom"),
-            legend.bg.color = "white",
-            bg.color="white",
-            legend.bg.alpha = 0.8,
-            legend.outside=T,
-            legend.title.size = 1,
-            legend.outside.size = 0.5)+
-  tm_add_legend(type = "fill",
-                col="black",
-                labels = "Outside AOA")+
-  tm_compass(position = c("left","bottom"))
-map
-tmap_save(map, "map_model_2_day.png")
-#visualize model 2 day
-map <-   tm_shape(shp = gadm)+
-  tm_polygons(col="black")+
-  tm_shape(model_1_day_predict,
-           raster.downsample = FALSE) +
-  tm_raster(title = "Predicted Air \nTemperature [°C]")+
-  tm_scale_bar(bg.color="white")+
-  tm_grid(n.x=4,n.y=4,projection="+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs")+
-  tm_layout(legend.position = c("left","bottom"),
-            legend.bg.color = "white",
-            bg.color="white",
-            legend.bg.alpha = 0.8,
-            legend.outside=T,
-            legend.title.size = 1,
-            legend.outside.size = 0.5)+
-  tm_add_legend(type = "fill",
-                col="black",
-                labels = "Outside AOA")+
-  tm_compass(position = c("left","bottom"))
-map
+tmap_save(map, "map_model_1_night.png", width=10, height=7)
 
-tmap_save(map, "map_model_2_day.png")
+#visualize model 2 day
+map <-   tm_shape(shp = gadm)+
+  tm_polygons(col="black")+
+  tm_shape(model_2_day_predict,
+           raster.downsample = FALSE) +
+  tm_raster(title = "Predicted Air \nTemperature [°C]")+
+  tm_scale_bar(bg.color="white")+
+  tm_grid(n.x=4,n.y=4,projection="+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs")+
+  tm_layout(legend.position = c("left","bottom"),
+            legend.bg.color = "white",
+            bg.color="white",
+            legend.bg.alpha = 0.8,
+            legend.outside=T,
+            legend.title.size = 1,
+            legend.outside.size = 0.5)+
+  tm_add_legend(type = "fill",
+                col="black",
+                labels = "Outside AOA")+
+  tm_compass(position = c("left","bottom"))
+map
+tmap_save(map, "map_model_2_day.png", width=10, height=7)
 
 ##visualize model 2 night
 map <-   tm_shape(shp = gadm)+
   tm_polygons(col="black")+
-  tm_shape(model_1_night_predict,
+  tm_shape(model_2_night_predict,
            raster.downsample = FALSE) +
   tm_raster(title = "Predicted Air \nTemperature [°C]")+
   tm_scale_bar(bg.color="white")+
@@ -127,4 +106,4 @@ map <-   tm_shape(shp = gadm)+
                 labels = "Outside AOA")+
   tm_compass(position = c("left","bottom"))
 map
-tmap_save(map, "map_model_2_night.png")
+tmap_save(map, "map_model_2_night.png", width=15, height=12)

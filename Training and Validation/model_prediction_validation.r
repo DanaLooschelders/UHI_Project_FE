@@ -56,11 +56,12 @@ model_1_night_predict[model_1_night_aoa$AOA == 0] <- NA
 ####Predict Model 2 - Day####
 meteo_day<-stack(paste("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_bearbeitet/Meteo_data_Steinf/", 
                    "Meteo_", "MOD11A1_A2020189_12_47", sep=""))
-pred_stack_2 <- stack(modis_day,pred_resample, meteo)
+pred_stack_2 <- stack(modis_day,pred_resample, meteo_day)
 names(pred_stack_2)<-c("modis", "copernicus", "dlm", "ucz", 
                      "meteo_RH", "meteo_Temp", "meteo_SWup")
 #predict
 model_2_day_predict<-predict(pred_stack_2, model_2, savePrediction=TRUE)
+mapview(model_2_day_predict)
 #calculate AOA
 model_2_day_aoa<-aoa(pred_stack_2, model_2)
 #calculate percentage of areas outside AOA
@@ -71,13 +72,15 @@ model_2_day_predict[model_2_day_aoa$AOA == 0] <- NA
 ####Predict Model 2 - Night####
 meteo_night<-stack(paste("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_bearbeitet/Meteo_data_Steinf/", 
                    "Meteo_", "MYD11A1_A2020158_04_11", sep=""))
-pred_stack_2 <- stack(modis_night,pred_resample, meteo)
+pred_stack_2 <- stack(modis_night,pred_resample, meteo_night)
 names(pred_stack_2)<-c("modis", "copernicus", "dlm", "ucz", 
                      "meteo_RH", "meteo_Temp", "meteo_SWup")
 #predict
 model_2_night_predict<-predict(pred_stack_2, model_2, savePrediction=TRUE)
+mapview(model_2_night_predict)
 #calculate AOA
 model_2_night_aoa<-aoa(pred_stack_2, model_2)
+model_2_night_aoa
 #calculate percentage of areas outside AOA
 ncell(model_2_night_aoa$AOA[model_2_night_aoa$AOA==1])/ncell(model_2_night_aoa$AOA)*100
 #remove values outside of AOA
