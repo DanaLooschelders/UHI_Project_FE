@@ -1,19 +1,78 @@
 rm(list=ls() )
-setwd("/Users/amelie/Desktop/LOEK/MSc/M8/Projekt/Sciebo/Daten_roh/FE_LUC")
+setwd("/Users/amelie/Desktop/LOEK/MSc/M8/Projekt/Rohdaten_I/dlm")
 
 library(sp)
-library(sf)
+library(sf) 
 library(mapview)
 library(raster)
-library(rgdal)  
+library(rgdal)
+library(tmap)
+library(tmaptools)
+library(stars)
+library(CAST)
+library(latticeExtra)
 
-####### land use classification#####
+#download dlm data
 download.file("https://www.opengeodata.nrw.de/produkte/geobasis/lm/dlm50/dlm50_EPSG25832_Shape.zip", destfile ="dlm50.zip")
 unzip("dlm50.zip",exdir="dlm")
 
+dlmlist <- list.files(path = "/Users/amelie/Desktop/LOEK/MSc/M8/Projekt/Rohdaten_I/dlm",
+                     pattern="_f.shp",
+                     all.files=TRUE, full.names=F)
+
+names(dlmlist) <- c("geb01_f.shp","geb02_f.shp","geb03_f.shp","gew01_f.shp","gew02_f.shp","rel01_f.shp",
+                    "sie01_f.shp","sie02_f.shp","sie03_f.shp","sie04_f.shp","veg01_f.shp","veg02_f.shp",
+                    "veg03_f.shp","veg04_f.shp","ver01_f.shp","ver03_f.shp","ver04_f.shp","ver05_f.shp",
+                    "ver06_f.shp")
+
+dlm <- lapply(dlmlist, shapefile)
+
+combinedShp <- do.call(what = rbind.SpatialPolygonsDataFrame, args=dlm)
+
+#load shape of münster
 gadm <- getData('GADM',country='DEU', level =2)
 ms <- gadm[gadm$NAME_2 == "Münster",]
-plot(ms)
+ms <- as(ms, "sf")
+ms <- st_transform(ms, crs ="+proj=utm +zone=32 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs")
+
+
+for (i in 2:19){
+  layer <- dlm[1]
+  layer <- layer@geb01_f.shp@data$OBJART
+  dlm[[i]] <- layer
+}
+
+#seq
+#crop to shape of münster
+#dlm_crop <- st_intersection(ms,dlm[2])
+
+  for (i in 1:length(dlm)){
+      dlm[i] <- as(i, "sf")
+      dlm[i] <- crs("+proj=utm +zone=32 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs")
+      dlm_crop[[1]] <- st_intersection(ms, dlm[i])
+      }   
+
+
+#rasterize 
+Mode <- function(x, na.rm = FALSE) {
+  if(na.rm){
+    x = subset(x, !is.na(x))
+  }
+  ux <- unique(x)
+  return(ux[which.max(tabulate(match(x, ux)))])
+}    
+e <- extent(395103.5,415705.1,5744177, 5768658)
+projection <- crs(gadm)
+r <- raster(e,
+            crs = projection)
+res(r) <- 100 
+    
+dlm_raster <- rasterize(dlm, r, field= as.numeric(dlm_ms_all$OBJART),
+                        getCover=F, fun=Mode)
+
+
+
+
 ####### einladen #####
 gew01 <- st_read("dlm/gew01_f.shp")
 #gew02 <- st_read("dlm/gew02_f.shp")
@@ -36,12 +95,6 @@ ver03 <- st_read("dlm/ver03_f.shp")
 #ver04 <- st_read("dlm/ver04_f.shp")
 ver05 <- st_read("dlm/ver05_f.shp")
 ver06 <- st_read("dlm/ver06_f.shp")
-
-#crs(ms)
-#crs(gew01)
-#class(ms)
-ms <- as(ms, "sf")
-ms <- st_transform(ms, crs(gew01))
 
 ####### zuschneiden ######
 #st_agr(gew01) = "identity "
