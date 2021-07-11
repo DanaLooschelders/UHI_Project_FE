@@ -2,14 +2,19 @@
 library(mapview)
 library(raster)
 library(CAST)
+library(caret)
 
 #plot variable importance
 plot(model_ffs) # see tuning results
-plot(varImp(model_ffs)) # variablenwichtigkeit
+Var1 <- plot(varImp(model_1))
+Var2 <- plot(varImp(model_2))# variablenwichtigkeit
 
 #model performance
-plot_ffs(model_ffs)
-plot_ffs(model_ffs, type="selected")
+ffs1 <- plot_ffs(model_1, type="selected")
+ffs2 <- plot_ffs(model_2, type="selected")
+
+plot_grid(Var1,ffs1, labels = "Model 1", rel_widths = c(1,1.3))
+plot_grid(Var2,ffs2, labels = "Model 2", rel_widths = c(1,1.5))
 
 model_ffs$modelType
 model_ffs$results
@@ -95,7 +100,7 @@ ncell(model_2_day_aoa$AOA[model_2_day_aoa$AOA==1])/ncell(model_2_day_aoa$AOA)*10
 #remove values outside of AOA
 model_2_night_predict[model_2_night_aoa$AOA == 0] <- NA
 
-###### new Modis data from 2021 #### 
+###### prediction to new Modis data from 2021 #### 
 library(MODIS)
 library(MODISTools)
 library(sf)
