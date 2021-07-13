@@ -4,32 +4,13 @@ library(raster)
 library(CAST)
 library(caret)
 
-#plot variable importance
-plot(model_ffs) # see tuning results
-Var1 <- plot(varImp(model_1))
-Var2 <- plot(varImp(model_2))# variablenwichtigkeit
-
-#model performance
-ffs1 <- plot_ffs(model_1, type="selected")
-ffs2 <- plot_ffs(model_2, type="selected")
-
-plot_grid(Var1,ffs1, labels = "Model 1", rel_widths = c(1,1.3))
-plot_grid(Var2,ffs2, labels = "Model 2", rel_widths = c(1,1.5))
-
-model_ffs$modelType
-model_ffs$results
-model_ffs$bestTune
-model_ffs$selectedvars
-model_ffs$selectedvars_perf_SE
-model_ffs$metric
-model_ffs$selectedvars_perf
-
 #load model 1 and 2
 setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Modelle")
 setwd("/Users/amelie/Desktop/LOEK/MSc/M8/Projekt/Sciebo/Modelle")
 model_1<-readRDS(file="ffs_Model_2021-07-07.RDS")
 model_2<-readRDS(file="ffs_Model_2021-07-08.RDS")
 
+####Predict with datasets from training data####
 #load modis scene day and  night
 modis_day <- raster("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_bearbeitet/FE_LST/terra_processed_resampled/terra_ terra__MOD11A1_A2020189_12_47_ .tif")
 modis_day <- raster("/Users/amelie/Desktop/LOEK/MSc/M8/Projekt/Sciebo/Daten_bearbeitet/FE_LST/terra_processed_resampled/terra_ terra__MOD11A1_A2020189_12_47_ .tif")
@@ -158,5 +139,26 @@ map <- tm_shape(predict_2021,
   tm_compass(position = c("left","bottom"))
 map
 
+####Test area####
+
+#plot variable importance
+plot(model_ffs) # see tuning results
+Var1 <- plot(varImp(model_1))
+Var2 <- plot(varImp(model_2))# variablenwichtigkeit
+
+#model performance
+ffs1 <- plot_ffs(model_1, type="selected")
+ffs2 <- plot_ffs(model_2, type="selected")
+
+plot_grid(Var1,ffs1, labels = "Model 1", rel_widths = c(1,1.3))
+plot_grid(Var2,ffs2, labels = "Model 2", rel_widths = c(1,1.5))
+
+model_ffs$modelType
+model_ffs$results
+model_ffs$bestTune
+model_ffs$selectedvars
+model_ffs$selectedvars_perf_SE
+model_ffs$metric
+model_ffs$selectedvars_perf
 
 
