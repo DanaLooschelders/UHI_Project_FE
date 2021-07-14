@@ -23,7 +23,7 @@ tmap_save(map_logger, "Logger_points.png")
 #visualize model 1 day
 map <-   tm_shape(shp = gadm)+
   tm_polygons(col="black")+
-  tm_shape(model_1_day_predict,
+  tm_shape(model_1_day_predict, 
            raster.downsample = FALSE) +
   tm_raster(title = "Predicted Air \nTemperature [°C]")+
   tm_scale_bar(bg.color="white")+
