@@ -1,6 +1,10 @@
 library(tmap)
 library(tmaptools)
+library(RColorBrewer)
 setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Maps")
+#create overall color scale from 8 °C to 35 °C
+#cols=brewer.pal(9, "YlOrRd")
+
 #logger distribution
 map_logger <- tm_shape(shp = gadm)+
   tm_polygons()+
@@ -25,7 +29,8 @@ map <-   tm_shape(shp = gadm)+
   tm_polygons(col="black")+
   tm_shape(model_1_day_predict, 
            raster.downsample = FALSE) +
-  tm_raster(title = "Predicted Air \nTemperature [°C]")+
+  tm_raster(title = "Predicted Air \nTemperature [°C]",
+            legend.hist=T)+
   tm_scale_bar(bg.color="white")+
   tm_grid(n.x=4,n.y=4,projection="+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs")+
   tm_layout(legend.position = c("left","bottom"),
@@ -47,7 +52,8 @@ map <-   tm_shape(shp = gadm)+
   tm_polygons(col="black")+
   tm_shape(model_1_night_predict,
            raster.downsample = FALSE) +
-  tm_raster(title = "Predicted Air \nTemperature [°C]")+
+  tm_raster(title = "Predicted Air \nTemperature [°C]",
+            legend.hist=T)+
   tm_scale_bar(bg.color="white")+
   tm_grid(n.x=4,n.y=4,projection="+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs")+
   tm_layout(legend.position = c("left","bottom"),
@@ -69,7 +75,8 @@ map <-   tm_shape(shp = gadm)+
   tm_polygons(col="black")+
   tm_shape(model_2_day_predict,
            raster.downsample = FALSE) +
-  tm_raster(title = "Predicted Air \nTemperature [°C]")+
+  tm_raster(title = "Predicted Air \nTemperature [°C]",
+            legend.hist=T)+
   tm_scale_bar(bg.color="white")+
   tm_grid(n.x=4,n.y=4,projection="+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs")+
   tm_layout(legend.position = c("left","bottom"),
@@ -91,7 +98,8 @@ map <-   tm_shape(shp = gadm)+
   tm_polygons(col="black")+
   tm_shape(model_2_night_predict,
            raster.downsample = FALSE) +
-  tm_raster(title = "Predicted Air \nTemperature [°C]")+
+  tm_raster(title = "Predicted Air \nTemperature [°C]",
+            legend.hist=T)+
   tm_scale_bar(bg.color="white")+
   tm_grid(n.x=4,n.y=4,projection="+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs")+
   tm_layout(legend.position = c("left","bottom"),

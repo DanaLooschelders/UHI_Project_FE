@@ -46,8 +46,8 @@ model_1_night_predict[model_1_night_aoa$AOA == 0] <- NA
 ####Predict Model 2 - Day####
 meteo_day<-stack(paste("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_bearbeitet/Meteo_data_Steinf/", 
                    "Meteo_", "MOD11A1_A2020189_12_47", sep=""))
-meteo_day<-stack(paste("/Users/amelie/Desktop/LOEK/MSc/M8/Projekt/Sciebo/Daten_bearbeitet/Meteo_data_Steinf/", 
-                       "Meteo_", "MOD11A1_A2020189_12_47", sep=""))
+#meteo_day<-stack(paste("/Users/amelie/Desktop/LOEK/MSc/M8/Projekt/Sciebo/Daten_bearbeitet/Meteo_data_Steinf/", 
+                       #"Meteo_", "MOD11A1_A2020189_12_47", sep=""))
 pred_stack_2 <- stack(modis_day,pred_resample, meteo_day)
 names(pred_stack_2)<-c("modis", "copernicus", "dlm", "ucz", 
                      "meteo_RH", "meteo_Temp", "meteo_SWup")
