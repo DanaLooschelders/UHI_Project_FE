@@ -27,7 +27,7 @@ model_1_day_predict<-predict(pred_stack_1, model_1, savePrediction=TRUE)
 #calculate AOA
 model_1_day_aoa<-aoa(pred_stack_1, model_1)
 #calculate percentage of areas outside AOA
-ncell(model_1_day_aoa$AOA[model_1_day_aoa$AOA==1])/ncell(model_1_day_aoa$AOA)*100
+ncell(model_1_day_aoa$AOA[model_1_day_aoa$AOA==1])/ncell(model_1_day_aoa$AOA[!is.na(model_1_day_aoa$AOA)])*100
 #remove values outside of AOA
 model_1_day_predict[model_1_day_aoa$AOA == 0] <- NA
 
@@ -39,7 +39,8 @@ model_1_night_predict<-predict(pred_stack_1, model_1, savePrediction=TRUE)
 #calculate AOA
 model_1_night_aoa<-aoa(pred_stack_1, model_1)
 #calculate percentage of areas outside AOA
-ncell(model_1_night_aoa$AOA[model_1_night_aoa$AOA==1])/ncell(model_1_night_aoa$AOA)*100
+ncell(model_1_night_aoa$AOA[model_1_night_aoa$AOA==1])/ncell(model_1_night_aoa$AOA[!is.na(model_1_night_aoa$AOA)])*100
+summary(model_1_night_aoa$AOA)
 #remove values outside of AOA
 model_1_night_predict[model_1_night_aoa$AOA == 0] <- NA
 
@@ -57,7 +58,7 @@ mapview(model_2_day_predict)
 #calculate AOA
 model_2_day_aoa<-aoa(pred_stack_2, model_2)
 #calculate percentage of areas outside AOA
-ncell(model_2_day_aoa$AOA[model_2_day_aoa$AOA==1])/ncell(model_2_day_aoa$AOA)*100
+ncell(model_2_day_aoa$AOA[model_2_day_aoa$AOA==1])/ncell(model_2_day_aoa$AOA[!is.na(model_2_day_aoa$AOA)])*100
 #remove values outside of AOA
 model_2_day_predict[model_2_day_aoa$AOA == 0] <- NA
 
@@ -77,8 +78,8 @@ model_2_night_predict<-predict(pred_stack_2, model_2, savePrediction=TRUE)
 model_2_night_aoa<-aoa(pred_stack_2, model_2, returnTrainDI = T)
 mapview(model_2_night_aoa)
 
-#calculate percentage of areas outside AOA
-ncell(model_2_night_aoa$AOA[model_2_night_aoa$AOA==1])/ncell(model_2_night_aoa$AOA)*100
+#calculate percentage of areas inside AOA
+ncell(model_2_night_aoa$AOA[model_2_night_aoa$AOA==1])/ncell(model_2_night_aoa$AOA[!is.na(values(model_2_night_aoa$AOA))])*100
 #ncell(model_2_day_aoa$AOA[model_2_day_aoa$AOA==1])/ncell(model_2_day_aoa$AOA)*100
 #remove values outside of AOA
 model_2_night_predict[model_2_night_aoa$AOA == 0] <- NA
