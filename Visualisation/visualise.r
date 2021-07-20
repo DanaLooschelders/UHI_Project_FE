@@ -1,10 +1,10 @@
 library(tmap)
 library(tmaptools)
 library(RColorBrewer)
+library(mapview)
 setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Maps")
 #create overall color scale from 8 °C to 35 °C
 #cols=brewer.pal(9, "YlOrRd")
-
 #logger distribution
 map_logger <- tm_shape(shp = gadm)+
   tm_polygons()+
@@ -24,13 +24,19 @@ map_logger
 
 tmap_save(map_logger, "Logger_points.png")
 
+#set colors
+cols_day<-mapviewPalette("mapviewSpectralColors")(40)[22:40]
+cols_night<-mapviewPalette("mapviewSpectralColors")(40)[12:22]
+#cols<-mapviewPalette("mapviewSpectralColors")(55)[25:55]
 #visualize model 1 day
 map <-   tm_shape(shp = gadm)+
   tm_polygons(col="black")+
   tm_shape(model_1_day_predict, 
            raster.downsample = FALSE) +
   tm_raster(title = "Predicted Air \nTemperature [°C]",
-            legend.hist=T)+
+            legend.hist=T,
+            palette = cols_day,
+            breaks=seq(18,30, 1))+
   tm_scale_bar(bg.color="white")+
   tm_grid(n.x=4,n.y=4,projection="+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs")+
   tm_layout(legend.position = c("left","bottom"),
@@ -51,9 +57,12 @@ tmap_save(map, "map_model_1_day.png", width=10, height=7)
 map <-   tm_shape(shp = gadm)+
   tm_polygons(col="black")+
   tm_shape(model_1_night_predict,
-           raster.downsample = FALSE) +
+           raster.downsample = FALSE,) +
   tm_raster(title = "Predicted Air \nTemperature [°C]",
-            legend.hist=T)+
+            legend.hist=T,
+           palette = cols_night,
+            breaks=seq(8,17, 1)
+            )+
   tm_scale_bar(bg.color="white")+
   tm_grid(n.x=4,n.y=4,projection="+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs")+
   tm_layout(legend.position = c("left","bottom"),
@@ -76,9 +85,12 @@ map <-   tm_shape(shp = gadm)+
   tm_shape(model_2_day_predict,
            raster.downsample = FALSE) +
   tm_raster(title = "Predicted Air \nTemperature [°C]",
-            legend.hist=T)+
+            legend.hist=T,
+            color = cols_day,
+            breaks=seq(18,30, 2))+
   tm_scale_bar(bg.color="white")+
-  tm_grid(n.x=4,n.y=4,projection="+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs")+
+  tm_grid(n.x=4,n.y=4,
+          projection="+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs")+
   tm_layout(legend.position = c("left","bottom"),
             legend.bg.color = "white",
             bg.color="white",
@@ -99,7 +111,10 @@ map <-   tm_shape(shp = gadm)+
   tm_shape(model_2_night_predict,
            raster.downsample = FALSE) +
   tm_raster(title = "Predicted Air \nTemperature [°C]",
-            legend.hist=T)+
+            legend.hist=T,
+            palette = cols_night,
+            breaks=seq(8,17, 1)
+            )+
   tm_scale_bar(bg.color="white")+
   tm_grid(n.x=4,n.y=4,projection="+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs")+
   tm_layout(legend.position = c("left","bottom"),
