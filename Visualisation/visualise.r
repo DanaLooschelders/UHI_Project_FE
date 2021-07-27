@@ -29,9 +29,6 @@ cols_day<-mapviewPalette("mapviewSpectralColors")(40)[22:40]
 cols_night<-mapviewPalette("mapviewSpectralColors")(40)[12:22]
 #cols<-mapviewPalette("mapviewSpectralColors")(55)[25:55]
 #visualize model 1 day
-range(model_1_day_predict@data@values, na.rm=T)
-sd(model_1_day_predict@data@values, na.rm=T)
-mean(model_1_day_predict@data@values, na.rm=T)
 
 map <-   tm_shape(shp = gadm)+
   tm_polygons(col="black")+
@@ -58,9 +55,6 @@ map
 
 tmap_save(map, "map_model_1_day.png", width=10, height=7)
 #visualize model 1 night
-range(model_1_night_predict@data@values, na.rm=T)
-sd(model_1_night_predict@data@values, na.rm=T)
-mean(model_1_night_predict@data@values, na.rm=T)
 
 map <-   tm_shape(shp = gadm)+
   tm_polygons(col="black")+
@@ -88,9 +82,6 @@ map
 tmap_save(map, "map_model_1_night.png", width=10, height=7)
 
 #visualize model 2 day
-range(model_2_day_predict@data@values, na.rm=T)
-sd(model_2_day_predict@data@values, na.rm=T)
-mean(model_2_day_predict@data@values, na.rm=T)
 
 map <-   tm_shape(shp = gadm)+
   tm_polygons(col="black")+
@@ -118,9 +109,6 @@ map
 tmap_save(map, "map_model_2_day.png", width=10, height=7)
 
 ##visualize model 2 night
-range(model_2_night_predict@data@values, na.rm=T)
-sd(model_2_night_predict@data@values, na.rm=T)
-mean(model_2_night_predict@data@values, na.rm=T)
 
 map <-   tm_shape(shp = gadm)+
   tm_polygons(col="black")+
