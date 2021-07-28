@@ -28,13 +28,10 @@ map
 
 model_ffs
 
-#plot variable importance
-plot(model_ffs) # see tuning results
-plot(varImp(model_ffs)) # variablenwichtigkeit
 
 #model performance
 plot_ffs(model_ffs)
-plot_ffs(model_ffs, type="selected")
+plot_ffs(model_1, type="selected")
 
 #calculate AOA
 test_aoa<-aoa(pred_stack, model_ffs)

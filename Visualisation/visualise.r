@@ -2,7 +2,7 @@ library(tmap)
 library(tmaptools)
 library(RColorBrewer)
 library(mapview)
-install.packages("OpenStreetMap")
+#install.packages("OpenStreetMap")
 library(OpenStreetMap)
 setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Maps")
 #create map of Muenster for Orientation
