@@ -1,16 +1,25 @@
 library(tmap)
+library(raster)
 library(tmaptools)
 library(RColorBrewer)
 library(mapview)
+library(sp)
+library(sf)
 #install.packages("OpenStreetMap")
 library(OpenStreetMap)
 setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Maps")
+#location Steinfurther Str
+steinf<-SpatialPoints(coords = data.frame("lat"=51.980214, "lon"=7.599170),
+                      proj4string = crs(gadm))
+
 #create map of Muenster for Orientation
 ms_osm<-tmaptools::read_osm(bb(gadm), ext=1)
 map_ms<-tm_shape(ms_osm)+
   tm_rgb()+
   tm_shape(gadm)+
   tm_borders()+
+  tm_shape(steinf)+
+  tm_dots(col = "red",size = 9, title = "Weather Station", legend.show=T)+
   tm_scale_bar(bg.color="white",position = c("right", "bottom"))
  
 map_ms

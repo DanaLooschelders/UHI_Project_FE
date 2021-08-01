@@ -43,6 +43,12 @@ crs(cop_ms_proj)
 cop_ms_crop=crop(cop_ms_proj, gadm_sf)
 mapview(cop_ms_crop) +mapview(gadm_sf)
 
+#save cropped but not aggregated file
+setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_bearbeitet/Copernicus")
+writeRaster(cop_ms_crop, filename = "copernicus_tree_cover_crop_MS_10m.tif", 
+            overwrite=T)
+
+#aggregate from 10m resolution to 100m resolution
 cop_ms_agg=raster::aggregate(cop_ms_crop, 10, fun =mean)
 mapview(cop_ms_agg)
 
