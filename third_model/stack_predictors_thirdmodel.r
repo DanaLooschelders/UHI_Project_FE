@@ -13,35 +13,21 @@ library(CAST)
 library(caret)
 library(randomForest)
 library(latticeExtra)
-#load training data
-training_dat<-spatial_list[grep(names(spatial_list),pattern="MOD11A1_A2020189_12_47")]
-training_dat<-training_dat[[1]]
+####LCZ (disaggregate to 10m)####
+#read in data 
+setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_bearbeitet/FE_UCZ")
+lcz<-raster("ucz_ms_100m.tif")
+#disaggregate to 10 m resolution
+lcz_10m<-disaggregate(lcz, fact=10)
+#####Tree cover (10m)####
+setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_bearbeitet/Copernicus")
+#read in 10m Copernicus data
+copernicus<-raster("copernicus_tree_cover_crop_MS_10m.tif")
+####prep training data: logger and netatmo (1h res)####
+all_temp
 
-#load predictor variables
-urbancz <- raster("FE_UCZ/ucz_ms_100m.tif")
-#dlm <-raster("dlm/dlm_raster_100m.tif")
-dlm <-raster("dlm/dlm_raster.tif")
-cop <- raster("Copernicus/copernicus_tree_cover_MS_100m.tif")
 
-extent(dlm) <- extent(cop)
-extent(urbancz) <- extent(cop)
-
-dlm <- resample(dlm,cop, method="ngb")
-urbancz <- resample(urbancz,cop, method="ngb")
-pred <- stack(cop,dlm,urbancz)
-mapview(pred)
-unique(dlm)
-writeRaster(pred, "pred_stack", overwrite = T)
-
-#test with one modis file
-modis_test <- raster("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_bearbeitet/FE_LST/terra_processed_resampled/terra_ terra__MOD11A1_A2020189_12_47_ .tif")
-values(modis_test)
-pred_resample <- resample(pred,modis_test)
-
-pred_stack <- stack(modis_test,pred_resample)
-mapview(test)
-
-#extract predictor values for trainin gdata
+#extract predictor values for training data
 extr <- extract(pred_stack,training_dat,df=TRUE)
 #create ID by row names
 training_dat$ID<-row.names(training_dat)

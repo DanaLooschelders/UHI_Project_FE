@@ -74,21 +74,9 @@ str(meteo_steinf)
 str(meteo_geo)
 str(wind_steinf)
 meteo <- data.frame("datetime"=all_temp$datetime, 
-                    "meteo_Temp"<-meteo_steinf$AirTC2m_Avg,
-                    "meteo_rH"<-meteo_steinf$RH2m_Avg,
-                    "meteo_stability" <-meteo_steinf$stability,
-                    "meteo_cloudcover"<-meteo_geo$tcc,
-                    "meteo_windspeed"<-wind_steinf$mean_windspeed)
-
-####LCZ (disaggregate to 10m)####
-#read in data 
-setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_bearbeitet/FE_UCZ")
-lcz<-raster("ucz_ms_100m.tif")
-#disaggregate to 10 m resolution
-lcz_10m<-disaggregate(lcz, fact=10)
-  #####Tree cover (10m)####
-setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_bearbeitet/Copernicus")
-#read in 10m Copernicus data
-copernicus<-raster("copernicus_tree_cover_crop_MS_10m.tif")
-####prep training data: logger and netatmo (1h res)####
-all_temp
+                    "meteo_Temp"=meteo_steinf$AirTC2m_Avg,
+                    "meteo_rH"=meteo_steinf$RH2m_Avg,
+                    "meteo_stability" =meteo_steinf$stability,
+                    "meteo_cloudcover"=meteo_geo$tcc,
+                    "meteo_windspeed"=wind_steinf$mean_windspeed)
+meteo$meteo_stability<-as.factor(meteo$meteo_stability)
