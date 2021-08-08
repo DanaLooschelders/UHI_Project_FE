@@ -13,6 +13,7 @@ library(CAST)
 library(caret)
 library(randomForest)
 library(latticeExtra)
+
 ####LCZ (disaggregate to 10m)####
 #read in data 
 setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_bearbeitet/FE_UCZ")
@@ -21,12 +22,13 @@ lcz<-raster("ucz_ms_100m.tif")
 lcz_10m<-disaggregate(lcz, fact=10)
 #####Tree cover (10m)####
 setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_bearbeitet/Copernicus")
+
 #read in 10m Copernicus data
 copernicus<-raster("copernicus_tree_cover_crop_MS_10m.tif")
+#get cop and lcz to same extent
+extent(copernicus)<-extent(lcz_10m)
+pred_stack<-stack(copernicus, lcz_10m)
 ####prep training data: logger and netatmo (1h res)####
-all_temp
-
-
 #extract predictor values for training data
 extr <- extract(pred_stack,training_dat,df=TRUE)
 #create ID by row names

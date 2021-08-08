@@ -80,3 +80,4 @@ meteo <- data.frame("datetime"=all_temp$datetime,
                     "meteo_cloudcover"=meteo_geo$tcc,
                     "meteo_windspeed"=wind_steinf$mean_windspeed)
 meteo$meteo_stability<-as.factor(meteo$meteo_stability)
+
