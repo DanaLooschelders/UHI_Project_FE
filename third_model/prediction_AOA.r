@@ -47,25 +47,28 @@ model_3_day_predict[model_3_aoa$AOA == 0] <- NA
 mapview(model_3_day_predict)
 
 ####Predict Model 3 - Night####
-#2020-07-12 01:00:00
+#2020-07-11 03:00:00
 meteo_night<-stack(paste("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_bearbeitet/Meteo_data_steinf_geo/", 
-                       "Meteo__", "120", sep=""))
+                       "Meteo__", "98", sep=""))
 #resample meteo
 meteo_night<-raster::resample(meteo_night, pred_stack, method="ngb")
+#mapview(meteo_night)
 #meteo_night<-stack(paste("/Users/amelie/Desktop/LOEK/MSc/M8/Projekt/Sciebo/Daten_bearbeitet/Meteo_data_Steinf/", 
 #"Meteo_", "MYD11A1_A2020158_04_11", sep=""))
-pred_stack_all_ <- stack(pred_stack, meteo_night)
+pred_stack_all <- stack(pred_stack, meteo_night)
 names(pred_stack_all)<-c( "copernicus", "ucz", 
                           "meteo_RH", "meteo_Temp", "meteo_stability",
                           "meteo_cloudcover", "meteo_wind")
 #predict
 model_3_night_predict<-predict(pred_stack_all, model_3, savePrediction=TRUE)
 mapview(model_3_night_predict)
+
+mapview(test)
 #mapview(model_2_night_predict)+mapview(modis_night)
 #calculate AOA
-model_3_night_aoa<-aoa(pred_stack_all, model_3, returnTrainDI = T)
+model_3_night_aoa<-aoa(pred_stack_all, model_3)
 mapview(model_3_night_aoa)
-
+mapview(pred_stack_all)
 #calculate percentage of areas inside AOA
 ncell(model_3_night_aoa$AOA[model_3_night_aoa$AOA==1])/ncell(model_3_night_aoa$AOA[!is.na(values(model_3_night_aoa$AOA))])*100
 #ncell(model_2_day_aoa$AOA[model_2_day_aoa$AOA==1])/ncell(model_2_day_aoa$AOA)*100
@@ -101,6 +104,8 @@ map <-   tm_shape(shp = gadm)+
                 labels = "Outside AOA")+
   tm_compass(position = c("left","bottom"))
 map
+#save
+tmap_save(map, "map_model_3_day.png", width=10, height=7)
 
 ncell(model_3_day_predict)
 ncell(model_2_day_predict)
