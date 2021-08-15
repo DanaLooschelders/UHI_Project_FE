@@ -81,7 +81,7 @@ cols_day<-mapviewPalette("mapviewSpectralColors")(40)[22:40]
 cols_night<-mapviewPalette("mapviewSpectralColors")(40)[12:22]
 #cols<-mapviewPalette("mapviewSpectralColors")(55)[25:55]
 #visualize model 3 day
-
+setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Maps")
 map <-   tm_shape(shp = gadm)+
   tm_polygons(col="black")+
   tm_shape(model_3_day_predict, 
@@ -110,3 +110,29 @@ tmap_save(map, "map_model_3_day.png", width=10, height=7)
 ncell(model_3_day_predict)
 ncell(model_2_day_predict)
 mapview(model_2_day_predict)
+
+model_3_night_predict<-mask(model_3_night_predict, gadm)
+map <-   tm_shape(shp = gadm)+
+  tm_polygons(col="black")+
+  tm_shape(model_3_night_predict,
+           raster.downsample = FALSE,) +
+  tm_raster(title = "Predicted Air \nTemperature [°C]",
+            legend.hist=T,
+            palette = cols_night,
+            breaks=seq(8,17, 1)
+  )+
+  tm_scale_bar(bg.color="white")+
+  tm_grid(n.x=4,n.y=4,projection="+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs")+
+  tm_layout(legend.position = c("left","bottom"),
+            legend.bg.color = "white",
+            bg.color="white",
+            legend.bg.alpha = 0.8,
+            legend.outside=T,
+            legend.title.size = 1,
+            legend.outside.size = 0.5)+
+  tm_add_legend(type = "fill",
+                col="black",
+                labels = "Outside AOA")+
+  tm_compass(position = c("left","bottom"))
+map
+tmap_save(map, "map_model_3_night.png", width=10, height=7)
