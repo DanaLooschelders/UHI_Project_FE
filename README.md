@@ -27,6 +27,7 @@ The following predictors are used
  
 2019: 
 * 08/20 - 09/30
+
 2020
 * 06/05 - 06/19
 * 07/03 - 07/17	
