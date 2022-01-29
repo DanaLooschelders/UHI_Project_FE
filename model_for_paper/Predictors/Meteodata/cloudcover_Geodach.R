@@ -60,3 +60,5 @@ meteo_geo<-rbind(Autumn2019,Spring2020,Summer2020)
 #remove temporaray dat
 rm(Autumn2019,Spring2020,Summer2020)
 #meteo_geo<-meteo_geo[meteo_geo$date>=starttime&meteo_geo$date<=endtime,]
+setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_bearbeitet/Meteo_data_steinf_geo")
+write.csv(meteo_geo, "meteo_geo.csv", row.names = F)
