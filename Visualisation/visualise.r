@@ -8,9 +8,13 @@ library(sf)
 #install.packages("OpenStreetMap")
 library(OpenStreetMap)
 setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Maps")
-#location Steinfurther Str
-steinf<-SpatialPoints(coords = data.frame("lat"=51.980214, "lon"=7.599170),
-                      proj4string = crs(gadm))
+#location Steinfurther Str and GeoDach
+#51.96943844413769, 7.595780519266868
+weather_stat<-SpatialPointsDataFrame(coords = data.frame("lat"=c(7.599170, 7.595780519266868),
+                                                         "lon"=c(51.980214, 51.96943844413769) 
+                                                ),
+                      proj4string = crs(gadm), 
+                      data=data.frame("Station"= c("Steinfurter", "GeoDach")))
 
 #create map of Muenster for Orientation
 ms_osm<-tmaptools::read_osm(bb(gadm), ext=1)
@@ -18,12 +22,16 @@ map_ms<-tm_shape(ms_osm)+
   tm_rgb()+
   tm_shape(gadm)+
   tm_borders()+
-  tm_shape(steinf)+
-  tm_dots(col = "red",size = 9, title = "Weather Station", legend.show=T)+
-  tm_scale_bar(bg.color="white",position = c("right", "bottom"))
+  tm_shape(weather_stat, raster.downsample = FALSE)+
+  tm_dots(size = .8, legend.show = F,shape = "Station")+
+  tm_scale_bar(bg.color="white",position = c("right", "bottom"))+
+  tm_layout(legend.position = c("right","top"),
+            legend.bg.color = "white",
+            legend.bg.alpha = 0.8,
+            legend.text.size = 0.9)
  
 map_ms
-tmap_save(map_ms, "Muenster_overview.png", width = 10, height=6)
+tmap_save(map_ms, "Muenster_overview_with_weather_station.png", width = 10, height=6)
 #create overall color scale from 8 °C to 35 °C
 #cols=brewer.pal(9, "YlOrRd")
 #logger distribution

@@ -9,8 +9,15 @@ library(gdalUtils)
 library(sf)
 library(mapview)
 #set directory
+#for tree cover density
 setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_roh/FE_Urban_Atlas_Tree_Cover (Copernicus)/40c4f17ce65366ae2881787e2ae2a1d1680f5328/TCD_2018_010m_de_03035_v020/TCD_2018_010m_de_03035_v020/DATA/")
 setwd("/Users/amelie/Desktop/LOEK/MSc/M8/Projekt/Sciebo/Daten_roh/FE_Urban_Atlas_Tree_Cover (Copernicus)/40c4f17ce65366ae2881787e2ae2a1d1680f5328/TCD_2018_010m_de_03035_v020/TCD_2018_010m_de_03035_v020/DATA")
+#for water and wetness
+setwd("C:/00_Dana/Uni/2. Mastersemester/Fernerkungsprojekt/Paper/Water_wetness/WAW_2018_010m_de_03035_v020/DATA/")
+#for imperviousness
+setwd("C:/00_Dana/Uni/2. Mastersemester/Fernerkungsprojekt/Paper/imperviousness/")
+
+
 #read in files
 files=list.files(pattern = ".tif")
 #exclude dbf files
@@ -44,8 +51,8 @@ cop_ms_crop=crop(cop_ms_proj, gadm_sf)
 mapview(cop_ms_crop) +mapview(gadm_sf)
 
 #save cropped but not aggregated file
-setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_bearbeitet/Copernicus")
-writeRaster(cop_ms_crop, filename = "copernicus_tree_cover_crop_MS_10m.tif", 
+setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_bearbeitet/Copernicus/Water_Wetness/")
+writeRaster(cop_ms_crop, filename = "copernicus_water_wetness_crop_MS_10m.tif", 
             overwrite=T)
 
 #aggregate from 10m resolution to 100m resolution

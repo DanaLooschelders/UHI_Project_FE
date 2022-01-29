@@ -136,3 +136,7 @@ map <-   tm_shape(shp = gadm)+
   tm_compass(position = c("left","bottom"))
 map
 tmap_save(map, "map_model_3_night.png", width=10, height=7)
+
+model_3$results
+
+values(pred_stack_all)
