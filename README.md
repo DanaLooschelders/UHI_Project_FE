@@ -4,7 +4,8 @@ These scripts build a random forest model to model the air temperature in the ci
 the air temperature measurements of Thermochron iButtons and Netamto weather stations were used as training data
 
 The following predictors are used
-    * Building height
+
+    * Building height  
     * Sd of building height
     * Sky View Factor
     * Albedo
