@@ -1,7 +1,10 @@
 # UHI_Project_FE
 These scripts build a random forest model to model the air temperature in the city of muenster.
 
-the air temperature measurements of Thermochron iButtons and Netamto weather stations were used as training data
+the following training data was used
+
+* air temperature measurements of Thermochron iButtons 
+* air temperature measurements of Netamto weather stations
 
 The following predictors are used
 
@@ -19,3 +22,12 @@ The following predictors are used
     * Windspeed (Weather station Steinfurter Str. Münster)
     * Wind direction (Weather station Steinfurter Str. Münster)
     * Cloud cover (Weather station GeoDach Münster)
+    
+ The following time frames are covered
+ 
+2019: 
+* 08/20 - 09/30
+2020
+* 06/05 - 06/19
+* 07/03 - 07/17	
+* 07/18 - 07/31
