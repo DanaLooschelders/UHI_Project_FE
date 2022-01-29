@@ -8,13 +8,13 @@ The following predictors are used
     * Sd of building height
     * Sky View Factor
     * Albedo
-    * Water and Wetness (WAW)
+    * Water and Wetness (https://land.copernicus.eu/pan-european/high-resolution-layers/water-wetness/status-maps/water-wetness-2018)
     * NDVI
-    * Tree cover density 
-    * Impervious Density 2018 
-    * Temperature
-    * rH
-    * Stability
-    * Windspeed
-    * Wind direction
-    * Cloud cover
+    * Tree cover density (https://land.copernicus.eu/pan-european/high-resolution-layers/forests/tree-cover-density/status-maps/tree-cover-density-2018)
+    * Impervious Density 2018 (https://land.copernicus.eu/pan-european/high-resolution-layers/imperviousness/status-maps/imperviousness-density-2018)
+    * Temperature (Weather station Steinfurter Str. Münster)
+    * Relative Humidity (Weather station Steinfurter Str. Münster)
+    * Stability (Weather station Steinfurter Str. Münster)
+    * Windspeed (Weather station Steinfurter Str. Münster)
+    * Wind direction (Weather station Steinfurter Str. Münster)
+    * Cloud cover (Weather station GeoDach Münster)
