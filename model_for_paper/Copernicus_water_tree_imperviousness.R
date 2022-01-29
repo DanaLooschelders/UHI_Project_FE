@@ -1,3 +1,4 @@
+#Preprocess and crop Copernicus data
 #Copernicus data
 #load librarys
 library(sp)
