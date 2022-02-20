@@ -8,9 +8,11 @@ library(lubridate)
 #"2020-07-07 02:00:00 CEST" "2020-07-28 23:00:00 CEST"
 #prep prediction
 #steinfurter: Temp, rH, windspeed, winddir, stability
-#GeoDach: cloud cover, SWincoming
+#GeoDach: cloud cover, SWincoming, cum SW incoming
 
-
+####Geodach####
+setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Paper/Prädiktoren/Meteorologie/GeoDach/")
+meteo_geo<-read.table(file="meteo_geo.csv", dec=".", sep=",", header=T)
 ####Steinfurther Str####
 #Steinf: Temp, rH,  stability (calculated from temp) #ACHTUNG ewige Sommerzeit
 setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Paper/Prädiktoren/Meteorologie/Steinfurter/preprocessed/")
@@ -26,15 +28,16 @@ str(meteo_steinf)
 
 #subset to perameters needed
 meteo_steinf<-meteo_steinf[,c(1,5,8,11)]
-#QAQC
-plot(meteo_steinf$timestamp,meteo_steinf$AirTC2m_Avg, type="l")
-plot(meteo_steinf$timestamp,meteo_steinf$RH2m_Avg, type="l")
-plot(meteo_steinf$timestamp,meteo_steinf$AirTC10m_Avg, type="l")
 
 #convert to POSIXct
 meteo_steinf$timestamp<-strptime(meteo_steinf$timestamp, format="%Y-%m-%d %H:%M:%S", tz="Europe/Berlin")
 str(meteo_steinf)
 meteo_steinf$timestamp<-as.POSIXct(meteo_steinf$timestamp)
+##QAQC
+plot(meteo_steinf$timestamp,meteo_steinf$AirTC2m_Avg, type="l")
+plot(meteo_steinf$timestamp,meteo_steinf$RH2m_Avg, type="l")
+plot(meteo_steinf$timestamp,meteo_steinf$AirTC10m_Avg, type="l")
+#rename date column
 colnames(meteo_steinf)[1]<-"date"
 #round to hour
 meteo_steinf=timeAverage(meteo_steinf,avg.time = "hour")
@@ -93,6 +96,10 @@ meteo <- data.frame("datetime"=meteo_steinf$date,
                     "meteo_stability" =meteo_steinf$stability,
                     "meteo_cloudcover"=meteo_geo$tcc,
                     "meteo_radiation"=meteo_geo$Shortwave.Radiation,
+                    "meteo_cum_radiation"=meteo_geo$cum_radiation,
                     "meteo_windspeed"=wind_steinf$mean_windspeed)
 meteo$meteo_stability<-as.factor(meteo$meteo_stability)
 
+#write in file
+setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Paper/Prädiktoren/Meteorologie/")
+write.csv(meteo, file = "meteo_all.csv", row.names = F )
