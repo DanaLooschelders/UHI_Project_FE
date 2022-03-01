@@ -17,7 +17,7 @@ st_write(extent,"extent.shp",append=TRUE)
 #extent <- system.file("extent.geojson", package ="sen2r")
 
 ### load sentinel data ####
-write_scihub_login("ameliewe", "Apfelmus.1")
+write_scihub_login("*******", "*******")
 
 #### 2019 sen2r ######
 test2019 <- sen2r(s2_levels = "l1c",
