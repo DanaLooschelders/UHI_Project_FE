@@ -82,3 +82,17 @@ pca_07 <- rescaleImage(pca2_2020_07$map$PC1, ymin = 0, ymax= 1)
 
 writeRaster(pca_07, "Albedo/albedo_ms_2020_07.tif")
 
+####### compare dif with ndvi#### 
+albedo_07 <- raster("Albedo/albedo_ms_2020_07.tif")
+albedo_06 <- raster("Albedo/albedo_ms_2020_06.tif")
+
+ndvi_07 <- raster("ndvi/ndvi_ms_final_2020_07.tif")
+ndvi_06 <- raster("ndvi/ndvi_ms_final_2020_06.tif")
+
+dif_abeldo <- (albedo_06 - albedo_07)
+dif_ndvi <- (ndvi_06 - ndvi_07)
+
+dif <- (dif_abeldo-dif_ndvi)
+mapview(dif)
+dif_a <- rescaleImage(dif_abeldo, ymin = 0, ymax= 1)
+dif_n <- rescaleImage(dif_ndvi, ymin = 0, ymax= 1)
