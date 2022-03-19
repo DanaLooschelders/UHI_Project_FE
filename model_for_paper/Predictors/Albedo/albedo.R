@@ -83,16 +83,44 @@ pca_07 <- rescaleImage(pca2_2020_07$map$PC1, ymin = 0, ymax= 1)
 writeRaster(pca_07, "Albedo/albedo_ms_2020_07.tif")
 
 ####### compare dif with ndvi#### 
+
+install.packages("diffeR")
+library(diffeR)
+
+(ctmatCompRef <- crosstabm(rat_ndvi, rat_albedo, percent = TRUE)) 
+
+diffTablej(ctmatCompRef)
+
+exchangeDij(ctmatCompRef)
+
+test <- differenceMR(rat_ndvi, rat_albedo, eval = "original")
+overallComponentsPlot(rat_ndvi, rat_albedo)
+
 albedo_07 <- raster("Albedo/albedo_ms_2020_07.tif")
 albedo_06 <- raster("Albedo/albedo_ms_2020_06.tif")
 
 ndvi_07 <- raster("ndvi/ndvi_ms_final_2020_07.tif")
 ndvi_06 <- raster("ndvi/ndvi_ms_final_2020_06.tif")
 
-dif_abeldo <- (albedo_06 - albedo_07)
-dif_ndvi <- (ndvi_06 - ndvi_07)
+ndvi_nor_07 <- rescaleImage(ndvi_07, ymin=0, ymax=1)
+ndvi_nor_06 <- rescaleImage(ndvi_06, ymin=0, ymax=1)
 
-dif <- (dif_abeldo-dif_ndvi)
-mapview(dif)
-dif_a <- rescaleImage(dif_abeldo, ymin = 0, ymax= 1)
-dif_n <- rescaleImage(dif_ndvi, ymin = 0, ymax= 1)
+ndvi <- overlay(ndvi_nor_07, ndvi_nor_06, fun=function(r1, r2){return(r1-r2)})
+albedo <- overlay(albedo_07, albedo_06, fun=function(r1, r2){return(r2-r1)})
+ 
+rat_ndvi <- (ndvi_nor_07/ndvi_nor_06)
+rat_albedo <- (albedo_06/albedo_07)
+
+mapview(test)
+
+test <- (ndvi/albedo)
+test <- (rat_ndvi-rat_albedo)
+
+diff <- overlay(rat_ndvi, rat_albedo, fun=function(r1, r2){return(r1==r2)})
+plot(diff,
+     col=c('#FFE4E1','#228B22'),
+     legend=FALSE,
+     axes=FALSE)
+legend("left", legend=c("Agree", "Disagree"),
+       col=c("#228B22", "#FFE4E1"), pch = 15, cex=0.8)
+
