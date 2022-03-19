@@ -25,7 +25,9 @@ hourly_times_06 <- merge(times_06, hourly, by.x = "day", by.y = "day")
 hourly_times_06$time <- format(as.POSIXct(hourly_times_06$date), format = "%H:%M:%S") 
 class(hourly_times_06$time) 
 
-library(hms)
+library(hms) #mit hms funktioniert es
+test<-as_hms(hourly_times_06$time) 
+class(test) #mit dem difftime format müsstest du rechnen können
 
 as.POSIXct(hourly_times_06$date,"%Y-%m-%d %H:%M:%S")
 as.POSIXct(hourly_times_06$Sunset,"%H:%M:%S")
@@ -33,7 +35,7 @@ as.POSIXct(hourly_times_06$Sunrise,"%H:%M:%S")
 as.POSIXct(hourly_times_06$time, "%H:%M:%S", tz = "UTC")
 
 hourly_times_06$time= as.Date(as.POSIXct(hourly_times_06$time))
-class(hourly_times_06$Sunrise)
+str(hourly_times_06$Sunrise)
 
 if (as.numeric(hourly_times_06$time) >= as.numeric(hourly_times_06$Sunrise)) {
 }else {
