@@ -26,26 +26,29 @@ hourly_times_06$time <- format(as.POSIXct(hourly_times_06$date), format = "%H:%M
 class(hourly_times_06$time) 
 
 library(hms) #mit hms funktioniert es
-test<-as_hms(hourly_times_06$time) 
-class(test) #mit dem difftime format müsstest du rechnen können
+time<-as_hms(hourly_times_06$time) 
+class(time) #mit dem difftime format müsstest du rechnen können
 
 as.POSIXct(hourly_times_06$date,"%Y-%m-%d %H:%M:%S")
 as.POSIXct(hourly_times_06$Sunset,"%H:%M:%S")
 as.POSIXct(hourly_times_06$Sunrise,"%H:%M:%S")
-as.POSIXct(hourly_times_06$time, "%H:%M:%S", tz = "UTC")
 
-hourly_times_06$time= as.Date(as.POSIXct(hourly_times_06$time))
-str(hourly_times_06$Sunrise)
+#lag <- function(x, n) c(rep(NA, n), x[1:(length(x) - n)])
 
-if (as.numeric(hourly_times_06$time) >= as.numeric(hourly_times_06$Sunrise)) {
-}else {
+for (i in 1:nrow(hourly_times_06)){
+  if(as.numeric(time) >= as.numeric(hourly_times_06$Sunrise) & (as.numeric(time) < as.numeric(hourly_times_06$Sunset))) {
+    hourly_times_06$hours_s_sunrise <- difftime(time,hourly_times_06$Sunrise,units="hours")
+  } else {
+    hourly_times_06$hours_s_sunset <- difftime(time,hourly_times_06$Sunset,units="hours")
+  }
 }
-  
 
-hourly_times_06 <-hourly_times_06 %>% 
-  group_by(Sunrise)#%>% #group by sunrise --> spans from one sunrise to next
-  mutate(sum_sunrise = cumsum(s)) #calculate cumsum per day
-#damit kann man nach Gruppen kumuliert aufsummieren, falls du das für die Stunden seit Sonnenaufgang brauchst
+for (i in 1:nrow(hourly_times_06)){
+    ifelse(as.numeric(time) >= as.numeric(hourly_times_06$Sunrise) & (as.numeric(time) < as.numeric(hourly_times_06$Sunset)),
+           hourly_times_06$hours_s_sunrise <- difftime(time,hourly_times_06$Sunrise,units="hours"),
+           NA)
+  }
 
+#hourly_times_06$hours_s_sunset <- difftime(time,hourly_times_06$Sunset,units="hours")
 #06/05 - 06/19          2020-06-05 00:00:00 bis 2020-06-19 00:00:00
 #07/03 - 07/31          2020-07-03 00:00:00 bis 2020-07-31 00:00:00
