@@ -22,33 +22,26 @@ hourly$day <- as.Date(hourly$day)
 
 hourly_times_06 <- merge(times_06, hourly, by.x = "day", by.y = "day")
 
-hourly_times_06$time <- format(as.POSIXct(hourly_times_06$date), format = "%H:%M:%S") 
-class(hourly_times_06$time) 
+hourly_times_06$time <- format(as.POSIXct(hourly_times_06$date), format = "%H:%M:%S")
 
-library(hms) #mit hms funktioniert es
-time<-as_hms(hourly_times_06$time) 
-class(time) #mit dem difftime format müsstest du rechnen können
+library(hms) 
+hourly_times_06$time<-as_hms(hourly_times_06$time) 
+class(hourly_times_06$time) 
 
 as.POSIXct(hourly_times_06$date,"%Y-%m-%d %H:%M:%S")
 as.POSIXct(hourly_times_06$Sunset,"%H:%M:%S")
 as.POSIXct(hourly_times_06$Sunrise,"%H:%M:%S")
 
+time_s_sunrise <-  ifelse(as.numeric(hourly_times_06$time) >= as.numeric(hourly_times_06$Sunrise) & (as.numeric(hourly_times_06$time) < as.numeric(hourly_times_06$Sunset)),
+                hourly_times_06$hours_s_sunris <-difftime(hourly_times_06$time,hourly_times_06$Sunrise,units="hours"),
+                NA) 
+
+hourly_times_06$time_s_sunrise <- time_s_sunrise
+
 #lag <- function(x, n) c(rep(NA, n), x[1:(length(x) - n)])
 
-for (i in 1:nrow(hourly_times_06)){
-  if(as.numeric(time) >= as.numeric(hourly_times_06$Sunrise) & (as.numeric(time) < as.numeric(hourly_times_06$Sunset))) {
-    hourly_times_06$hours_s_sunrise <- difftime(time,hourly_times_06$Sunrise,units="hours")
-  } else {
-    hourly_times_06$hours_s_sunset <- difftime(time,hourly_times_06$Sunset,units="hours")
-  }
-}
 
-for (i in 1:nrow(hourly_times_06)){
-    ifelse(as.numeric(time) >= as.numeric(hourly_times_06$Sunrise) & (as.numeric(time) < as.numeric(hourly_times_06$Sunset)),
-           hourly_times_06$hours_s_sunrise <- difftime(time,hourly_times_06$Sunrise,units="hours"),
-           NA)
-  }
+                                              
 
-#hourly_times_06$hours_s_sunset <- difftime(time,hourly_times_06$Sunset,units="hours")
 #06/05 - 06/19          2020-06-05 00:00:00 bis 2020-06-19 00:00:00
 #07/03 - 07/31          2020-07-03 00:00:00 bis 2020-07-31 00:00:00
