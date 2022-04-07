@@ -1,7 +1,7 @@
 #Wind data from DWD
 #downloaded via: https://www.dwd.de/DE/leistungen/klimadatendeutschland/klarchivstunden.html
 #for Muenster/Osnabrück 
-setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_roh/Meteo_Daten/DWD/stundenwerte_FF_01766_akt/")
+setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Trainingsdaten/Netatmo/stundenwerte_FF_01766_akt/")
 
 #read metadata
 meta_geog_wind=read.table("Metadaten_Geographie_01766.txt", sep=";", dec=".", header=T)
@@ -13,7 +13,7 @@ meta_station_ID_wind=read.table("Metadaten_Stationsname_01766.txt", sep=";", dec
 
 #read in data
 wind=read.table("produkt_ff_stunde_20190226_20200828_01766.txt", sep=";", dec=".", header=T)
-wind=wind[wind$MESS_DATUM>=2020070700,]
+wind=wind[wind$MESS_DATUM>=2020060400,]
 names(wind)[4]="wind_speed"
 names(wind)[5]="wind_direction"
 
@@ -29,7 +29,7 @@ wind$MESS_DATUM=strptime(wind$MESS_DATUM, format="%Y%m%d %H", tz="Europe/Paris")
 #temperature data from DWD
 #downloaded via: https://www.dwd.de/DE/leistungen/klimadatendeutschland/klarchivstunden.html
 #for Muenster/Osnabrück 
-setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_roh/Meteo_Daten/DWD/stundenwerte_TU_01766_akt/")
+setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Trainingsdaten/Netatmo/stundenwerte_TU_01766_akt")
 
 #read metadata
 meta_geog_temp=read.table("Metadaten_Geographie_01766.txt", sep=";", dec=".", header=T)
@@ -40,7 +40,7 @@ meta_station_ID_temp=read.table("Metadaten_Stationsname_01766.txt", sep=";", dec
 
 #read in data
 temp=read.table("produkt_tu_stunde_20190226_20200828_01766.txt", sep=";", dec=".", header=T)
-temp=temp[temp$MESS_DATUM>=2020070700,]
+temp=temp[temp$MESS_DATUM>=2020060400,]
 temp$MESS_DATUM=strptime(temp$MESS_DATUM, format="%Y%m%d%H")
 #str(temp)
 #no good correlation found
