@@ -2,7 +2,7 @@ library(raster)
 library(readr)
 library(dplyr)
 setwd("/Users/ameliewendiggensen/sciebo/UHI_Projekt_Fernerkundung/Paper/Prädiktoren/")
-
+setwd("/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Prädiktoren/")
 sunrise_dates <- read_csv2("Time_of_day/sunrise_dates.csv")
 sunrise_w_date <- read_csv("Time_of_day/sunrise_with_date.csv")
 
@@ -35,7 +35,18 @@ as.POSIXct(hourly_times_06$Sunrise,"%H:%M:%S")
 time_s_sunrise <-  ifelse(as.numeric(hourly_times_06$time) >= as.numeric(hourly_times_06$Sunrise) & (as.numeric(hourly_times_06$time) < as.numeric(hourly_times_06$Sunset)),
                 difftime(hourly_times_06$time,hourly_times_06$Sunrise,units="hours"),
                 NA) 
-
+#Danas Version
+hourly_times_06$hours_sss<-NA #sss = since sun set
+#time since sunset
+for(i in 24:nrow(hourly_times_06)){ #start after first day
+  if(hourly_times_06$time[i]>hourly_times_06$Sunset[i]){ #if it is after sunset the same day
+    hourly_times_06$hours_sss[i]<-difftime(hourly_times_06$time[i],hourly_times_06$Sunset[i],units="hours")
+  } else{#if it is before sunset, calculate time since last days sunset
+    sunsettime<-hourly_times_06$Sunset[hourly_times_06$day==as.Date(hourly_times_06$day[i])-1][1]#get last days sunset time
+    hourly_times_06$hours_sss[i]<-difftime(hourly_times_06$time[i],sunsettime,units="hours")+24#calculate hours
+  }
+} 
+ 
 time_s_sunset <-  ifelse(as.numeric(hourly_times_06$time) <= as.numeric(hourly_times_06$Sunrise) | (as.numeric(hourly_times_06$time) > as.numeric(hourly_times_06$Sunset)),
                          difftime(hourly_times_06$time,hourly_times_06$Sunset,units="hours"),
                          NA)
