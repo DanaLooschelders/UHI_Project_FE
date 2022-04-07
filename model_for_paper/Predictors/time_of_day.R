@@ -33,15 +33,15 @@ as.POSIXct(hourly_times_06$Sunset,"%H:%M:%S")
 as.POSIXct(hourly_times_06$Sunrise,"%H:%M:%S")
 
 time_s_sunrise <-  ifelse(as.numeric(hourly_times_06$time) >= as.numeric(hourly_times_06$Sunrise) & (as.numeric(hourly_times_06$time) < as.numeric(hourly_times_06$Sunset)),
-                hourly_times_06$hours_s_sunris <-difftime(hourly_times_06$time,hourly_times_06$Sunrise,units="hours"),
+                difftime(hourly_times_06$time,hourly_times_06$Sunrise,units="hours"),
                 NA) 
 
+time_s_sunset <-  ifelse(as.numeric(hourly_times_06$time) <= as.numeric(hourly_times_06$Sunrise) | (as.numeric(hourly_times_06$time) > as.numeric(hourly_times_06$Sunset)),
+                         difftime(hourly_times_06$time,hourly_times_06$Sunset,units="hours"),
+                         NA)
+
 hourly_times_06$time_s_sunrise <- time_s_sunrise
-
-#lag <- function(x, n) c(rep(NA, n), x[1:(length(x) - n)])
-
-
-                                              
+hourly_times_06$time_s_sunset <- time_s_sunset
 
 #06/05 - 06/19          2020-06-05 00:00:00 bis 2020-06-19 00:00:00
 #07/03 - 07/31          2020-07-03 00:00:00 bis 2020-07-31 00:00:00
