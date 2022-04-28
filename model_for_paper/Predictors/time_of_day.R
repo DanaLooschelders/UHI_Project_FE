@@ -51,11 +51,62 @@ hourly_times_06$hours_ssr <- hours_ssr
 #time since sunset
 hourly_times_06$hours_sss<-NA 
 
-for(i in 24:nrow(hourly_times_06)){ #start after first day
+for(i in 23:nrow(hourly_times_06)){ #start after first day
   if(hourly_times_06$time[i]>hourly_times_06$Sunset[i]){ #if it is after sunset the same day
     hourly_times_06$hours_sss[i]<-difftime(hourly_times_06$time[i],hourly_times_06$Sunset[i],units="hours")
   } else{#if it is before sunset, calculate time since last days sunset
     sunsettime<-hourly_times_06$Sunset[hourly_times_06$day==as.Date(hourly_times_06$day[i])-1][1]#get last days sunset time
     hourly_times_06$hours_sss[i]<-difftime(hourly_times_06$time[i],sunsettime,units="hours")+24#calculate hours
+  }
+} 
+
+for(i in 23:nrow(hourly_times_06)){
+  if(hourly_times_06$time[i]>hourly_times_06$Sunrise[i]&&hourly_times_06$time[i]<hourly_times_06$Sunset[i]) {
+    hourly_times_06$hours_sss[i] <- NA
+  }
+} 
+
+##### july ####
+#add hourly information
+hourly <- data.frame(seq(ISOdate(2020,07,03, hour = 0),ISOdate(2020,07,31, hour = 23),by = "hour"))
+names(hourly) <- c("date")
+hourly <- hourly %>% mutate(day = substr(date,1L,10L))
+hourly$day <- as.Date(hourly$day)
+
+hourly_times_07 <- merge(times_07, hourly, by.x = "day", by.y = "day")
+
+hourly_times_07$time <- format(as.POSIXct(hourly_times_07$date), format = "%H:%M:%S")
+
+#as posixct 
+library(hms) 
+hourly_times_07$time<-as_hms(hourly_times_07$time) 
+class(hourly_times_07$time) 
+
+as.POSIXct(hourly_times_06$date,"%Y-%m-%d %H:%M:%S")
+as.POSIXct(hourly_times_06$Sunset,"%H:%M:%S")
+as.POSIXct(hourly_times_06$Sunrise,"%H:%M:%S")
+
+#time since sun rise 
+hours_ssr_07 <-  ifelse(as.numeric(hourly_times_07$time) >= as.numeric(hourly_times_07$Sunrise) & (as.numeric(hourly_times_07$time) < as.numeric(hourly_times_07$Sunset)),
+                     difftime(hourly_times_07$time,hourly_times_07$Sunrise,units="hours"),
+                     NA) 
+
+hourly_times_07$hours_ssr <- hours_ssr_07
+
+#time since sunset
+hourly_times_07$hours_sss<-NA 
+
+for(i in 23:nrow(hourly_times_07)){ #start after first day
+  if(hourly_times_07$time[i]>hourly_times_07$Sunset[i]){ #if it is after sunset the same day
+    hourly_times_07$hours_sss[i]<-difftime(hourly_times_07$time[i],hourly_times_07$Sunset[i],units="hours")
+  } else{#if it is before sunset, calculate time since last days sunset
+    sunsettime<-hourly_times_07$Sunset[hourly_times_07$day==as.Date(hourly_times_07$day[i])-1][1]#get last days sunset time
+    hourly_times_07$hours_sss[i]<-difftime(hourly_times_07$time[i],sunsettime,units="hours")+24#calculate hours
+  }
+} 
+
+for(i in 23:nrow(hourly_times_07)){
+  if(hourly_times_07$time[i]>hourly_times_07$Sunrise[i]&&hourly_times_07$time[i]<hourly_times_07$Sunset[i]) {
+    hourly_times_07$hours_sss[i] <- NA
   }
 } 
