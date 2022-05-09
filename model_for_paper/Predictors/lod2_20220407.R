@@ -32,11 +32,14 @@ test2 <- read.graph("testdaten_3d-gm-lod2_citygml.gml",format=c("gml"))
 test <- read_sf("testdaten_3d-gm-lod2_citygml.gml")
 
 # Danas GML Skript 
+setwd("C:/00_Dana/Uni/2. Mastersemester/Fernerkungsprojekt/Paper/gml/gml")
+
 lod2test<-read_sf("testdaten_3d-gm-lod2_citygml.gml",layer = "Building")
 
 lod2<-read_sf("3d-gm_lod2_kacheln/LoD2_32_395_5756_1_NW.gml",layer = "Building")
 
 gmllist <- tryCatch(lapply(gmllist, read_sf, layer = "Building"))
+
 
 
 gmllist2<- as.list(list.files(pattern='.gml'))
@@ -52,6 +55,18 @@ ggplot(data=lod2)+
   geom_sf(aes(color=measuredHeight))
 
 
-
-
+#as for loop
+setwd("C:/00_Dana/Uni/2. Mastersemester/Fernerkungsprojekt/Paper/gml/gml")
+#list files
+files<-list.files(pattern=".gml")
+#create empty files list
+files_list<-vector(mode='list', length=length(files))
+#set names of list to match files
+names(files_list)<-files
+#loop through all the files
+for(i in files){
+  tryCatch({
+    files_list[[i]]<-read_sf(i, layer="Building")
+  })
+}
 
