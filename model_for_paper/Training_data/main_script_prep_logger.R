@@ -54,6 +54,8 @@ usePackage("dplyr")
 usePackage("reshape2")   
 usePackage("stringr")
 usePackage("tidyverse")
+usePackage("zoo")
+usePackage("xts")
 
 ####Source other scripts####
 source(file="C:/00_Dana/Uni/2. Mastersemester/Fernerkungsprojekt/UHI_Project_FE/model_for_paper/Training_data/prep_june2020_logger.R")
@@ -79,9 +81,8 @@ for(i in names(juneiButton_long)){
   if(any(names(juneiButton)==i)){ #if ID matches
     juneiButton_long[[i]]<-juneiButton[[i]] #write data in list
   } else{ #empty list entry
-    juneiButton_long[[i]]<-NULL
-    juneiButton_long[[i]]$Datetime.1<-dummydate
-    juneiButton_long[[i]]$Temperature_C<-NA
+    juneiButton_long[[i]]<-data.frame("Temperature_C"=NA, 
+                                      "Datetime.1"=dummydate)
   }
 }
 
@@ -94,32 +95,44 @@ for(i in names(juneiButton_long)){
   dat_bind=rbind(dat, dat_2, dat_3)
   complete_list[[i]]=dat_bind
 }
-
-#add consecutive and NA in order to dispaly it correctly in the plot 
-date_time <- seq.POSIXt(from=complete_list[[1]][1,2],
-                        to=complete_list[[1]][dim(complete_list[[1]])[1],2],
-                        by="10 min") #create complete timeframe
+#plot
+ggplot(bind_rows(complete_list, .id="df"), aes(x=Datetime.1, y=Temperature_C, colour=df)) +
+  geom_line()
+#round date to nearest 10 mins
+library(lubridate)
 
 for(i in 1:length(complete_list)){
-  test=xts(complete_list[[i]][,1],complete_list[[i]][,2]) 
-  #merge logger time series with emtpy one minute time series
-  test2=merge(test,date_time)
-  test2=data.frame("Temperature_C"=test2) #name the new column
-  test2$Datetime.1=rownames(test2) #use the newly set times to replace previous time data
-  rownames(test2)=NULL #delete rownames
-  colnames(test2)=c("Temperature_C", "Datetime.1")
-  complete_list[[i]]=test2
+  complete_list[[i]]$Datetime.1<-round_date(complete_list[[i]]$Datetime.1,
+                    unit="10 minutes")
 }
+#add consecutive and NA in order to dispaly it correctly in the plot 
+daterange <- data.frame("Datetime.1"=seq.POSIXt(from=as.POSIXct(complete_list[["35"]][1,2]),
+                        to=as.POSIXct(complete_list[["35"]][dim(complete_list[[1]])[1],2]),
+                        by="10 min")) #create complete timeframe
+
+library(dplyr)
+for(i in 1:length(complete_list)){
+  #merge
+  dataframe<-left_join(daterange, complete_list[[i]])
+  #reorder columns
+  dataframe<-dataframe %>% select(Temperature_C, everything())
+  complete_list[[i]]<-dataframe
+  }
+  
+
 
 complete_list_date <- lapply(complete_list, `[`, 2)
 complete_list_date <- lapply(complete_list_date, function(x) as.POSIXct(x$Datetime.1,format="%Y-%m-%d %H:%M:%S"))
 complete_list = map2(complete_list, complete_list_date, ~ mutate(., Datetime.1 = .y)) 
 
+ggplot(bind_rows(complete_list, .id="df"), aes(x=Datetime.1, y=Temperature_C, colour=df)) +
+  geom_line()
+
 setwd("C:/00_Dana/Uni/2. Mastersemester/Fernerkungsprojekt/UHI_Project_FE/model_for_paper/Training_data/")
 save(complete_list, file="listiButtons.rData")
 
 list_iButton_only_temp <- lapply(complete_list, `[`, 1)
-dataframe_logger<-as.data.frame(do.call(cbind, list_iButton_only_temp))   
+dataframe_logger<-data.frame(do.call(cbind, list_iButton_only_temp))   
 colnames(dataframe_logger)<-names(complete_list)
 dataframe_logger$datetime<-complete_list[[1]]$Datetime.1
 setwd("C:/00_Dana/Uni/2. Mastersemester/Fernerkungsprojekt/UHI_Project_FE/model_for_paper/Training_data/")

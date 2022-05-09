@@ -197,6 +197,8 @@ daterange<-data.frame("Datetime.1"=seq(from=start_time+120, to=end_time+1200, by
 range(daterange$Datetime.1)
 #merge full timeseries with incomplete data
 test<-left_join(daterange, list_june_iButton_corr_set[["66"]] )
+#reorder columns of rest
+test<-test %>% select(Temperature_C, everything())
 list_june_iButton_corr_set[["66"]]<-test
 #save list to folder
 setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Trainingsdaten/Logger")
