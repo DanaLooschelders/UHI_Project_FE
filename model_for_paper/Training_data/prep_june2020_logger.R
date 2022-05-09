@@ -125,7 +125,7 @@ list_june_iButton <- mapply(cbind, list_june_iButton, "Datetime"=list_june_iButt
 #---> chose own time period
 range(list_june_iButton_datetime[[1]])
 start_time=strptime("2020-06-09 18:00:00", "%Y-%m-%d %H:%M:%S")
-end_time=strptime("2020-06-18 21:00:00", "%Y-%m-%d %H:%M:%S")
+end_time=strptime("2020-06-18 20:30:00", "%Y-%m-%d %H:%M:%S")
 
 
 # Apply the time index on each data table in the list "list_june_iButton"
@@ -189,7 +189,15 @@ list_june_iButton_corr_set[c("10","5","17","25","28")]<-NULL
 #plot again
 ggplot(bind_rows(list_june_iButton_corr_set, .id="df"), aes(x=Datetime.1, y=Temperature_C, colour=df)) +
   geom_line()
-
+#Logger 66 started logging later
+plot(list_june_iButton_corr_set[["66"]]$Temperature_C, type="l")
+range(list_june_iButton_corr_set[["66"]]$Datetime.1)
+#create fulltime time series
+daterange<-data.frame("Datetime.1"=seq(from=start_time+120, to=end_time+1200, by="10 min"))
+range(daterange$Datetime.1)
+#merge full timeseries with incomplete data
+test<-left_join(daterange, list_june_iButton_corr_set[["66"]] )
+list_june_iButton_corr_set[["66"]]<-test
 #save list to folder
 setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Trainingsdaten/Logger")
 saveRDS(list_june_iButton_corr_set, file="JuneiButton.RData")

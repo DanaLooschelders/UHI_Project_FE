@@ -69,8 +69,6 @@ juneiButton<-readRDS("JuneiButton.RData")
 julyfirstiButton<-readRDS("JulyfirstiButton.RData")
 julysecondiButton<-readRDS("JulysecondiButton.RData")
 
-range(juneiButton[["100"]]$Datetime.1)
-range(juneiButton[["106"]]$Datetime.1)
 #create empty time series for June logger
 #empty_list <- vector(mode = "list", length = 32)
 #names(empty_list)<-names(julyfirstiButton)
@@ -81,6 +79,7 @@ for(i in names(juneiButton_long)){
   if(any(names(juneiButton)==i)){ #if ID matches
     juneiButton_long[[i]]<-juneiButton[[i]] #write data in list
   } else{ #empty list entry
+    juneiButton_long[[i]]<-NULL
     juneiButton_long[[i]]$Datetime.1<-dummydate
     juneiButton_long[[i]]$Temperature_C<-NA
   }
