@@ -139,6 +139,12 @@ end_time=strptime("2020-07-17 00:00:00", "%Y-%m-%d %H:%M:%S")
 list_iButton_corr = lapply(list_iButton, function(x) {subset(x, x[,1] >= start_time & x[,1] <= end_time)})
 
 rm(list = as.character(files_iButtons)) #remove csv.files from environment
+#plot 
+library(ggplot2)
+library(dplyr)
+ggplot(bind_rows(list_iButton_corr, .id="df"), aes(x=Datetime.1, y=Temperature_C, colour=df)) +
+  geom_line()
+
 ####start time correction####
 require(zoo)
 require(xts)
@@ -162,7 +168,7 @@ for(i in 1:length(list_iButton_corr)){
   #merge logger time series with emtpy one minute time series
   test2=merge(test,date_time_complete)
   #replace NA values (created by merging with higher res) with spline interpolated values
-  test2=na.spline(test2)
+  test2=na.approx(test2)
   test2=data.frame("Temperature_corr"=test2) #name the new column
   test2$Datetime.1=rownames(test2) #use the newly set times to replace previous time data
   rownames(test2)=NULL #delete rownames
@@ -174,6 +180,21 @@ for(i in 1:length(list_iButton_corr)){
 
 rm(test, test2, test3)
 
+#remove water logger
+library(readxl)
+#wasserlogger: 10, 5, 17, 25, 28
+meta<-read_excel("../Sensortabelle_Kartierung_Stand_22.07.2020_DL_ohne_meta.xlsx")
+wasserlogger<-meta$Logger_ID[meta$Loggertyp=="WL"]
+#remove water logger
+list_iButton_corr_set[c(as.character(wasserlogger))]<-NULL
+#plot again
+ggplot(bind_rows(list_iButton_corr_set, .id="df"), aes(x=Datetime.1, y=Temperature_C, colour=df)) +
+  geom_line()
+#remove 69 as it is only zero
+list_iButton_corr_set[c(as.character(69))]<-NULL
+#plot again
+ggplot(bind_rows(list_iButton_corr_set, .id="df"), aes(x=Datetime.1, y=Temperature_C, colour=df)) +
+  geom_line()
 #wilcox.test(test_linear$test, test_spline$test)
 #use only for data from 03.07 to subset all ts to same intervall
 range(list_iButton_corr_set[[1]]$Datetime.1)
@@ -181,7 +202,9 @@ range(list_iButton_corr_set[[2]]$Datetime.1)
 start_time=strptime("2020-07-07 00:00:00", "%Y-%m-%d %H:%M:%S")
 end_time=strptime("2020-07-17 00:00:00", "%Y-%m-%d %H:%M:%S")
 list_iButton_corr_set = lapply(list_iButton_corr_set, function(x) {subset(x, x[,2] >= start_time & x[,2] < end_time)})
-
+#plot again
+ggplot(bind_rows(list_iButton_corr_set, .id="df"), aes(x=Datetime.1, y=Temperature_C, colour=df)) +
+  geom_line()
 #save list to folder
-setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Paper/Trainingsdaten")
+setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Trainingsdaten/Logger")
 saveRDS(list_iButton_corr_set, file="JulyfirstiButton.RData")

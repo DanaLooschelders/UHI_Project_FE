@@ -13,7 +13,7 @@ rm(list = ls())
 # setwd(choose.dir()) # Uncomment if necessary, but only works for Windows operating system
 #setwd("V:/klima/Projekte/2019_Urban_Heat_Island/Data/Data_raw/Calibration_test_20190704-20190708")
 #setwd("C:/00_Dana/Uni/6. Semester/Bachelorarbeit/logger_data/UHI_20200717-20200731/")
-setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_roh/Temp_Logger/UHI_20200718-20200731")
+setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Trainingsdaten/Logger/Rohdaten/UHI_20200718-20200731")
 #the logger IDs 56 and 102 were added manually to the .csv files as they were missing in the original file
 #later, ID 102 was corrected to 93 because 102 was the old ID from Stiftherrenstrasse 
 #and 93 was the true missing ID from Spiekerhof vegetation
@@ -164,6 +164,10 @@ list_second_iButton_corr = lapply(list_second_iButton, function(x) {subset(x, x[
 rm(list = as.character(files_second_iButtons)) #remove csv.files from environment
 list_second_iButton_corr_set=list_second_iButton_corr
 
+#plot
+ggplot(bind_rows(list_second_iButton_corr_set, .id="df"), aes(x=Datetime.1, y=Temperature_C, colour=df)) +
+  geom_line()
+
 require(zoo)
 require(xts)
 require(splines)
@@ -186,7 +190,7 @@ for(i in 1:length(list_second_iButton_corr)){
   #merge logger time series with emtpy one minute time series
   test2=merge(test,date_time_complete)
   #replace NA values (created by merging with higher res) with spline interpolated values
-  test2=na.spline(test2)
+  test2=na.approx(test2)
   test2=data.frame("Temperature_corr"=test2) #name the new column
   test2$Datetime.1=rownames(test2) #use the newly set times to replace previous time data
   rownames(test2)=NULL #delete rownames
@@ -198,7 +202,19 @@ for(i in 1:length(list_second_iButton_corr)){
 
 rm(test, test2, test3)
 
-
+#remove water logger
+library(readxl)
+#plot again
+ggplot(bind_rows(list_second_iButton_corr_set, .id="df"), aes(x=Datetime.1, y=Temperature_C, colour=df)) +
+  geom_line()
+#wasserlogger: 10, 5, 17, 25, 28
+meta<-read_excel("../Sensortabelle_Kartierung_Stand_22.07.2020_DL_ohne_meta.xlsx")
+wasserlogger<-meta$Logger_ID[meta$Loggertyp=="WL"]
+#remove water logger
+list_second_iButton_corr_set[c(as.character(wasserlogger))]<-NULL
+#plot again
+ggplot(bind_rows(list_second_iButton_corr_set, .id="df"), aes(x=Datetime.1, y=Temperature_C, colour=df)) +
+  geom_line()
 #save list to folder
-setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Paper/Trainingsdaten")
+setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Trainingsdaten/Logger")
 saveRDS(list_second_iButton_corr_set, file="JulysecondiButton.RData")

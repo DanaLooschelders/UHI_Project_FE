@@ -124,8 +124,8 @@ list_june_iButton <- mapply(cbind, list_june_iButton, "Datetime"=list_june_iButt
 
 #---> chose own time period
 range(list_june_iButton_datetime[[1]])
-start_time=strptime("2020-06-09 00:00:00", "%Y-%m-%d %H:%M:%S")
-end_time=strptime("2020-06-19 00:00:00", "%Y-%m-%d %H:%M:%S")
+start_time=strptime("2020-06-09 18:00:00", "%Y-%m-%d %H:%M:%S")
+end_time=strptime("2020-06-18 21:00:00", "%Y-%m-%d %H:%M:%S")
 
 
 # Apply the time index on each data table in the list "list_june_iButton"
@@ -183,12 +183,7 @@ ggplot(bind_rows(list_june_iButton_corr_set, .id="df"), aes(x=Datetime.1, y=Temp
   geom_line()
 
 #remove water logger
-library(readxl)
-lapply(list_june_iButton_corr_set, function(x) sd(x$Temperature_C, na.rm=T))
-lapply(list_june_iButton_corr_set, function(x) range(x$Temperature_C, na.rm=T))
 #wasserlogger: 10, 5, 17, 25, 28
-meta<-read_excel("../Sensortabelle_Kartierung_Stand_22.07.2020_DL_ohne_meta.xlsx")
-wasserlogger<-meta$Logger_ID[meta$Loggertyp=="WL"]
 #remove water logger
 list_june_iButton_corr_set[c("10","5","17","25","28")]<-NULL
 #plot again
@@ -196,5 +191,5 @@ ggplot(bind_rows(list_june_iButton_corr_set, .id="df"), aes(x=Datetime.1, y=Temp
   geom_line()
 
 #save list to folder
-setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Trainingsdaten")
+setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Trainingsdaten/Logger")
 saveRDS(list_june_iButton_corr_set, file="JuneiButton.RData")

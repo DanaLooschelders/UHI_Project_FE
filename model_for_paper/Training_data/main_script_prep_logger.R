@@ -63,11 +63,14 @@ source(file="C:/00_Dana/Uni/2. Mastersemester/Fernerkungsprojekt/UHI_Project_FE/
 #clear wd() again
 rm(list = ls())
 
+setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Trainingsdaten/Logger")
 #read in lists
 juneiButton<-readRDS("JuneiButton.RData")
 julyfirstiButton<-readRDS("JulyfirstiButton.RData")
 julysecondiButton<-readRDS("JulysecondiButton.RData")
 
+range(juneiButton[["100"]]$Datetime.1)
+range(juneiButton[["106"]]$Datetime.1)
 #create empty time series for June logger
 #empty_list <- vector(mode = "list", length = 32)
 #names(empty_list)<-names(julyfirstiButton)
