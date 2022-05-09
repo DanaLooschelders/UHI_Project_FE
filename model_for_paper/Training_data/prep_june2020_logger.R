@@ -13,7 +13,7 @@ rm(list = ls())
 # setwd(choose.dir()) # Uncomment if necessary, but only works for Windows operating system
 #setwd("V:/klima/Projekte/2019_Urban_Heat_Island/Data/Data_raw/Calibration_test_20190704-20190708")
 #setwd("C:/00_Dana/Uni/6. Semester/Bachelorarbeit/logger_data/UHI_20200703-20200717/")
-setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_roh/Temp_Logger/UHI_20200605-20200619/")
+setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Trainingsdaten/Logger/Rohdaten/UHI_20200605-20200619/")
 #the logger IDs 56 and 102 were added manually to the .csv files as they were missing in the original file
 #later, ID 102 was corrected to 93 because 102 was the old ID from Stiftherrenstrasse 
 #and 93 was the true missing ID from Spiekerhof vegetation
@@ -135,6 +135,13 @@ end_time=strptime("2020-06-19 00:00:00", "%Y-%m-%d %H:%M:%S")
 list_june_iButton_corr = lapply(list_june_iButton, function(x) {subset(x, x[,1] >= start_time & x[,1] <= end_time)})
 
 rm(list = as.character(files_june_iButtons)) #remove csv.files from environment
+
+#plot as QAQC
+library(ggplot2)
+library(dplyr)
+ggplot(bind_rows(list_june_iButton_corr, .id="df"), aes(x=Datetime.1, y=Temperature_C, colour=df)) +
+  geom_line()
+
 ####start time correction####
 require(zoo)
 require(xts)
@@ -151,14 +158,15 @@ date_time_complete <- seq.POSIXt(from=start_time,
                                  to=end_time,by="min") #create minute timeframe
 list_june_iButton_corr_set=list_june_iButton_corr
 list_june_iButton_corr_set=lapply(list_june_iButton_corr_set, `[`, 2:3) #use only 2nd and 3rd column
+
 #create new list to use as output
 for(i in 1:length(list_june_iButton_corr)){
   #create time series with datetime and temperature
   test=xts(list_june_iButton_corr[[i]][,2],list_june_iButton_corr[[i]][,3]) 
   #merge logger time series with emtpy one minute time series
   test2=merge(test,date_time_complete)
-  #replace NA values (created by merging with higher res) with spline interpolated values
-  test2=na.spline(test2)
+  #replace NA values (created by merging with higher res) with interpolated values
+  test2=na.approx(test2)
   test2=data.frame("Temperature_corr"=test2) #name the new column
   test2$Datetime.1=rownames(test2) #use the newly set times to replace previous time data
   rownames(test2)=NULL #delete rownames
@@ -169,6 +177,24 @@ for(i in 1:length(list_june_iButton_corr)){
 }
 
 rm(test, test2, test3)
+
+#plot again
+ggplot(bind_rows(list_june_iButton_corr_set, .id="df"), aes(x=Datetime.1, y=Temperature_C, colour=df)) +
+  geom_line()
+
+#remove water logger
+library(readxl)
+lapply(list_june_iButton_corr_set, function(x) sd(x$Temperature_C, na.rm=T))
+lapply(list_june_iButton_corr_set, function(x) range(x$Temperature_C, na.rm=T))
+#wasserlogger: 10, 5, 17, 25, 28
+meta<-read_excel("../Sensortabelle_Kartierung_Stand_22.07.2020_DL_ohne_meta.xlsx")
+wasserlogger<-meta$Logger_ID[meta$Loggertyp=="WL"]
+#remove water logger
+list_june_iButton_corr_set[c("10","5","17","25","28")]<-NULL
+#plot again
+ggplot(bind_rows(list_june_iButton_corr_set, .id="df"), aes(x=Datetime.1, y=Temperature_C, colour=df)) +
+  geom_line()
+
 #save list to folder
-setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Paper/Trainingsdaten")
+setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Trainingsdaten")
 saveRDS(list_june_iButton_corr_set, file="JuneiButton.RData")
