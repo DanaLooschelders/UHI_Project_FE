@@ -200,6 +200,12 @@ test<-left_join(daterange, list_june_iButton_corr_set[["66"]] )
 #reorder columns of rest
 test<-test %>% select(Temperature_C, everything())
 list_june_iButton_corr_set[["66"]]<-test
+
+#some loggers changed their ID from June to July -> set logger to July ID
+#106 (June) --> 109 (July)
+#92 (June) --> 39 (July)
+names(list_june_iButton_corr_set)[4]<-"109"
+names(list_june_iButton_corr_set)[9]<-"39"
 #save list to folder
 setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Trainingsdaten/Logger")
 saveRDS(list_june_iButton_corr_set, file="JuneiButton.RData")

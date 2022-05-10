@@ -135,10 +135,6 @@ list_iButton_only_temp <- lapply(complete_list, `[`, 1)
 dataframe_logger<-data.frame(do.call(cbind, list_iButton_only_temp))   
 colnames(dataframe_logger)<-names(complete_list)
 dataframe_logger$datetime<-complete_list[[1]]$Datetime.1
-setwd("C:/00_Dana/Uni/2. Mastersemester/Fernerkungsprojekt/UHI_Project_FE/model_for_paper/Training_data/")
+setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Trainingsdaten/Logger")
 write.csv(dataframe_logger, file = "Logger_2020.csv")
 
-#Final QAQC to check for unrealistic values
-logger<-read.csv("Logger_2020.csv")
-length(is.na(logger))
-logger[logger<0,]<-NA

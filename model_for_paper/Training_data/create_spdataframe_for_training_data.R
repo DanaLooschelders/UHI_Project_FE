@@ -49,6 +49,7 @@ netatmo_metadata_subset$index<-rep("Netatmo")
 #change order of columns to match logger metadata
 netatmo_metadata_subset<-netatmo_metadata_subset[,c(2,1,3)]
 names(netatmo_metadata_subset)<-c("Lat", "Lon", "index")
+
 ####Logger####
 #create spatial points dataframe with Logger Temp for a certain time
 setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Trainingsdaten/Logger/")
@@ -56,33 +57,21 @@ setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Trainingsdaten/Logger/")
 logger=read.csv(file="Logger_2020.csv", header=T)
 
 logger=logger[,-1] #remove first column that contained rownames
-colnames(logger)[1:32]=substr(colnames(logger)[1:32], start=2, stop=10)
+colnames(logger)[1:26]=substr(colnames(logger)[1:26], start=2, stop=10)
 
 #average logger data by hour
 #load coordinates of logger
 #read in metadata
-setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_roh/Temp_Logger/")
+setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Trainingsdaten/Logger/Rohdaten/")
 des=read_excel(path = "Sensortabelle_Kartierung_Stand_22.07.2020_DL_ohne_meta.xlsx", 
                col_names = T, na = "NA")
-#exclude water temp logger
-waterlogger=des$Logger_ID[des$Loggertyp=="WL"]
-logger <- logger[ , ! names(logger) %in% c(waterlogger, "69")] 
 
+#round to hourly data to match Netatmo
 logger$date<-as.POSIXct(logger$datetime)
 logger<-logger[,-27]
 logger=timeAverage(logger,avg.time = "hour")
 names(logger)[1]<-"datetime"
-#load modis times and dates to match with logger temp
-setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_bearbeitet/FE_LST/")
-aqua<-read.csv(file="aqua_processed/aqua_times.csv")
-aqua$datetime<- as.POSIXct(aqua$datetime)
-terra<-read.csv(file="terra_processed/terra_times.csv")
-terra$datetime<- as.POSIXct(terra$datetime)
-#round time to nearest 10 mins
-aqua$datetime_round<- round_date(aqua$datetime,unit="hours")
-terra$datetime_round<-round_date(terra$datetime,unit="hours")
-#bind together
-modis<-rbind(aqua, terra)
+
 #create a metadata table for logger
 #set ID as first column
 metadata=data.frame("Logger_ID"=as.integer(colnames(logger)[2:27]))
