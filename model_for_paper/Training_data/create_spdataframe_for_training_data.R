@@ -92,23 +92,22 @@ str(all_temp)
 
 #create dataframe per time
 which(colnames(all_temp)=="datetime")
-for(i in 1:length(modis$filename)){
-  if(any(all_temp$datetime==modis$datetime_round[i], na.rm = T))
-  {if(i==1){
+i=1
+for(i in 1:nrow(all_temp)){
+  if(i==1){
     all_temp_match<-list()
     temp_dat<-data.frame(ID<-as.character(colnames(all_temp)[-1]), 
-                         temperature<-t(all_temp[all_temp$datetime==modis$datetime_round[i],-1]))
+                         temperature<-t(all_temp[i,-1]))
     all_temp_match[[i]]<-merge(all_metadata, temp_dat, by="row.names" )
     names(all_temp_match[[i]])<-c("rownames", "Lat", "Lon","index", "Logger_ID", "Temperature")
-    names(all_temp_match)[[i]]<-modis$filename[i]
+    names(all_temp_match)[[i]]<-all_temp$datetime[i]
   }else{
     temp_dat<-data.frame(ID<-as.character(colnames(all_temp)[-1]), 
-                         temperature<-t(all_temp[all_temp$datetime==modis$datetime_round[i],-1]))
+                         temperature<-t(all_temp[i,-1]))
     all_temp_match[[i]]<-merge(all_metadata,temp_dat, by="row.names" )
     names(all_temp_match[[i]])<-c("rownames", "Lat", "Lon","index", "Logger_ID", "Temperature")
-    names(all_temp_match)[[i]]<-modis$filename[i]
+    names(all_temp_match)[[i]]<-all_temp$datetime[i]
   }
-  }else{}
 }
 
 ####create spatialdataframe####
@@ -119,10 +118,10 @@ for(i in 1:length(modis$filename)){
 #  metadata$Temperature[metadata$Logger_ID==i]<-logger[index,1]
 #}
 
-#remove empty list entries
-all_temp_match = all_temp_match[-which(sapply(all_temp_match, is.null))]
 #create spatialpointsdataframe with logger coordinates
-
+setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Trainingsdaten/Logger/Rohdaten")
+gadm<-readRDS("gadm36_DEU_2_sp.rds")
+#loop
 for(i in 1:length(all_temp_match)){
   if(i ==1){
     spatial_list=all_temp_match
@@ -137,35 +136,11 @@ for(i in 1:length(all_temp_match)){
   }
 }
 
-spTransform(spatial_list[[1]], CRSobj = crs(gadm))
+#spTransform(spatial_list[[1]], CRSobj = crs(gadm))
 #save workspace as list
-setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_bearbeitet")
+setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Trainingsdaten/")
 save.image(file="SpatialPoints_Temp_Data")
 
-#test to plot modis with training data
-#get modis sample
-setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_bearbeitet/FE_LST/aqua_processed_resampled/")
-modisfiles=list.files(pattern="*.tif")
-modis_r=raster(modisfiles[8])
-ncell(modis_r)
+#test plot
+mapview(spatial_list[[1]])
 
-setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_bearbeitet/FE_LST/aqua_processed/")
-modisfiles=list.files(pattern="*.tif")
-modis_nr=raster(modisfiles[8])
-ncell(modis_nr)
-
-
-modisfiles=list.files(pattern="*.tif")
-modis=raster(modisfiles[1])
-#plot
-mapview(modis)+mapview(spatial_list[[1]])
-
-#count points in cell
-#plot
-test_count <- rasterize(spatial_list[[1]], modis, fun="count")
-plot(test_count)
-#table
-test=na.omit(cbind(1:ncell(test_count), values(test_count)))
-#table version 2
-x <- rasterToPoints(test_count)
-z <- cbind(cell=cellFromXY(test_count, x[,1:2]), value=x[,3])
