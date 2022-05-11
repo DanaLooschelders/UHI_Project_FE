@@ -20,7 +20,7 @@ str(meteo)
 gadm <- getData('GADM', country='DEU', level=2)
 gadm <- gadm[gadm$NAME_2=="Münster",]
 gadm_sf <- as(gadm,"sf")
-
+mapview(gadm_sf)
 #load refrence raster
 setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Prädiktoren/Copernicus_grün_blau_grau/Imperviousness")
 ref_raster<-raster("copernicus_imperviousness_crop_MS_10m.tif")
@@ -28,8 +28,15 @@ ref_raster<-raster("copernicus_imperviousness_crop_MS_10m.tif")
 r <- raster(ncol=ncol(ref_raster), nrow=nrow(ref_raster))
 extent(r) <- extent(ref_raster)
 raster_Steinf<-rasterize(gadm, r)
-values(raster_Steinf)
+#values(raster_Steinf)
 
+#shorten meteo to only the times the training data is available
+setwd( "C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Trainingsdaten/Logger")
+all_temp<-read.csv("all_temp.csv")
+trainingtimes<-data.frame("datetime"=as.POSIXct(all_temp$datetime))
+meteo$datetime<-as.POSIXct(meteo$datetime)
+meteo<-left_join(trainingtimes, meteo, "datetime")
+str(meteo)
 #use for loop to create raster layer (stack for each point in time)
 #use raster_Steinf as dummy raster
 setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Prädiktoren/Meteorologie/Rasterdata/")

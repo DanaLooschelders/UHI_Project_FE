@@ -90,9 +90,12 @@ all_temp=inner_join(logger, netatmo, by="datetime")
 str(all_metadata)
 str(all_temp)
 
+setwd( "C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Trainingsdaten/Logger")
+#save all_temp as csv
+write.csv(all_temp, file = "all_temp.csv", row.names = F)
 #create dataframe per time
 which(colnames(all_temp)=="datetime")
-i=1
+
 for(i in 1:nrow(all_temp)){
   if(i==1){
     all_temp_match<-list()
