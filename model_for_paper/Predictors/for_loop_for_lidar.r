@@ -14,3 +14,7 @@ for(i in files){
     files_list[[i]]<-read_sf(i, layer="Building")
   })
 }
+
+test<-read_sf("LoD2_32_395_5757_1_NW.gml", layer="Building")
+crs(test)
+test
