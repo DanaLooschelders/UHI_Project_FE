@@ -30,5 +30,5 @@ sp_list<-lapply(raster_list, function(x) as(x, "Spatial"))
 plot(sp_list[[1]], axes=T)
 mapview(sp_list[[1]])
 #plot multiple
-mapview(sp_list[[9]])+mapview(sp_list[[8]])+mapview(sp_list[[7]])
+mapview(sp_list[[9]])+mapview(sp_list[[8]])
 
