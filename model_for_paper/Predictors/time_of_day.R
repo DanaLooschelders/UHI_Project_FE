@@ -110,3 +110,6 @@ for(i in 23:nrow(hourly_times_07)){
     hourly_times_07$hours_sss[i] <- NA
   }
 } 
+
+write_csv(hourly_times_06, "/Users/ameliewendiggensen/sciebo/UHI_Projekt_Fernerkundung/Paper/Prädiktoren/Time_of_day/times_06.csv")
+write_csv(hourly_times_07,"/Users/ameliewendiggensen/sciebo/UHI_Projekt_Fernerkundung/Paper/Prädiktoren/Time_of_day/times_07.csv" )

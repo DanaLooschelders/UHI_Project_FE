@@ -1,8 +1,6 @@
 library(raster)
 library(rgdal)
 library(mapview)
-library(ggplot2)
-library(reshape2)
 library(RStoolbox)
 
 setwd("/Users/ameliewendiggensen/sciebo/UHI_Projekt_Fernerkundung/Paper/Prädiktoren/")
@@ -60,3 +58,18 @@ plot(dif_ndvi)
 setwd("/Users/ameliewendiggensen/sciebo/UHI_Projekt_Fernerkundung/Paper/Prädiktoren/Albedo")
 writeRaster(albedo_boa_06, "albedo_boa_ms_2020_06.tif")
 writeRaster(albedo_boa_07, "albedo_boa_ms_2020_07.tif")
+
+##### put albedo and ndvi together ### 
+albedo_06 <- raster("albedo_boa_ms_2020_06.tif")
+albedo_07 <- raster("albedo_boa_ms_2020_07.tif")
+
+ndvi_06 <- raster("/Users/ameliewendiggensen/sciebo/UHI_Projekt_Fernerkundung/Paper/Prädiktoren/ndvi/ndvi_ms_final_2020_06.tif")
+ndvi_07 <- raster("/Users/ameliewendiggensen/sciebo/UHI_Projekt_Fernerkundung/Paper/Prädiktoren/ndvi/ndvi_ms_final_2020_07.tif")
+
+albedo_ndvi_06 <-stack(albedo_06, ndvi_06)
+names(albedo_ndvi_06) <- c("albedo","ndvi")
+writeRaster(albedo_ndvi_06, "albedo_ndvi_final_06.tif", overwrite=TRUE)
+
+albedo_ndvi_07 <-stack(albedo_07, ndvi_07)
+names(albedo_ndvi_07) <- c("albedo","ndvi")
+writeRaster(albedo_ndvi_07, "albedo_ndvi_final_07.tif", overwrite=TRUE)
