@@ -31,4 +31,22 @@ plot(sp_list[[1]], axes=T)
 mapview(sp_list[[1]])
 #plot multiple
 mapview(sp_list[[9]])+mapview(sp_list[[8]])
+#coerce to raster
+raster_list <- lapply(sp_list, raster)
+#check resolution
+lapply(raster_list, res)
+#mosaic together
+raster_list.mosaicargs <- raster_list #create new list
+names(raster_list.mosaicargs) <- NULL #set names to NULL so that they are recognised by moasic
+raster_list.mosaicargs$fun <- mean #overlapping cells should get mean value
+lapply(raster_list, origin) #check difference in origin
+raster_list.mosaicargs$tolerance <- 1 #tolerance for origin is 1
+raster_list.mosaicargs$na.rm <- TRUE #ignore NA values
+ras_mosaic <- do.call(mosaic,  raster_list.mosaicargs) #mosaic with do.call
 
+mapview(ras_mosaic) #check
+
+#calculate standard deviation of building height
+sd_3x3<-focal(ras_mosaic, w=matrix(1, 3,3), fun=sd, na.rm=T)
+
+mapview(sd_3x3)#check
