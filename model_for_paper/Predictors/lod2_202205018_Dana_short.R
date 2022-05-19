@@ -35,7 +35,7 @@ for (i in index_NULL_files){
   tryCatch(expr={
   #read in files and set crs
   files_list[[i]]<-read_sf(i,crs="+proj=utm +zone=32 +datum=WGS84 +units=m +no_defs" )
-  }, error=function(e){message("Caught an error")})
+  }, error=function(e){message("Whooops")})
 }
 
 #test how many files are NULL now
