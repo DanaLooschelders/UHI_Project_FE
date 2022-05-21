@@ -14,6 +14,7 @@ library(latticeExtra)
 library(terra)
 
 #load all raster stacks 
+#setwd("/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Prädiktoren/")
 setwd("/Users/ameliewendiggensen/sciebo/UHI_Projekt_Fernerkundung/Prädiktoren")
 albedo_ndvi_06 <- stack("Albedo/albedo_ndvi_final_06.tif")
 albedo_ndvi_07 <- stack("Albedo/albedo_ndvi_final_07.tif")
@@ -25,6 +26,7 @@ imperv<- stack("Copernicus_grün_blau_grau/Imperviousness/copernicus_impervious
                "Copernicus_grün_blau_grau/Imperviousness/copernicus_imperviousness_crop_MS_10m.tif")
 
 treecov<- "/Users/ameliewendiggensen/sciebo/UHI_Projekt_Fernerkundung/Prädiktoren/Copernicus_grün_blau_grau/Treecover"
+
 list.files(treecov)
 setwd(treecov)
 treecov <- stack( "copernicus_tree_cover_3x3_MS_10m.tif",     
@@ -83,9 +85,14 @@ lidar_crs <- projectRaster(lidar,crs = "+proj=longlat +datum=WGS84 +no_defs",
 
 pred_stack_06 <- stack(all_static_pred_06, lidar_crs)
 pred_stack_07 <- stack(all_static_pred_07, lidar_crs)
+#load stacks
+#setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Prädiktoren")
+#pred_stack_06<-stack("all_static_pred_06.grd")
+#pred_stack_07<-stack("all_static_pred_07.grd")
 
 load("/Users/ameliewendiggensen/sciebo/UHI_Projekt_Fernerkundung/Trainingsdaten/SpatialPoints_Temp_Data")
- 
+#load("/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Trainingsdaten/SpatialPoints_Temp_Data")
+
 #load("/Users/ameliewendiggensen/Desktop/SpatialPoints_Temp_Data")
 #alte_sp_list <- spatial_list
 
@@ -93,15 +100,18 @@ load("/Users/ameliewendiggensen/sciebo/UHI_Projekt_Fernerkundung/Trainingsdaten/
 test<- raster::extract(pred_stack_all,logger_dat,df=TRUE) #problemmooo 
 test<- extract(pred_stack_all,logger_dat,df=TRUE) #problemmooo 
 
+rm(total_stack)
+
 #load dynamic predictors 
-for(i in 1:length(spatial_list)){   
+system.time(for(i in 1:5){#length(spatial_list)){   
   if(!exists("total_stack")){
     #index logger list to get one element
     logger_dat<-spatial_list[[i]]
     #load meteo raster stack
-    meteo<-stack(paste("/Users/ameliewendiggensen/sciebo/UHI_Meteo_Raster/", "Meteo__", i, ".grd", sep=""))
+    meteo<-stack(paste("/Users/Dana/sciebo/UHI_Meteo_Raster/", "Meteo__", i, ".grd", sep=""))
+    #meteo<-stack(paste("/Users/ameliewendiggensen/sciebo/UHI_Meteo_Raster/", "Meteo__", i, ".grd", sep=""))
     #resample meteo
-    meteo<-resample(meteo, pred_stack_06, method="ngb")
+    #meteo<-resample(meteo, pred_stack_06, method="ngb")
     #stack pred_stack and meteo_stack
     pred_stack_all <- stack(pred_stack_06, meteo)
     #extract predictor values for training data
@@ -119,9 +129,10 @@ for(i in 1:length(spatial_list)){
     #index logger list to get one element
     logger_dat<-spatial_list[[i]]
     #load meteo raster stack
-    meteo<-stack(paste("/Users/ameliewendiggensen/sciebo/UHI_Meteo_Raster/", "Meteo__", i, ".grd", sep=""))
+    meteo<-stack(paste("/Users/Dana/sciebo/UHI_Meteo_Raster/", "Meteo__", i, ".grd", sep=""))
+     #meteo<-stack(paste("/Users/ameliewendiggensen/sciebo/UHI_Meteo_Raster/", "Meteo__", i, ".grd", sep=""))
     #resample meteo
-    meteo<-resample(meteo, pred_stack_06, method="ngb")
+    #meteo<-resample(meteo, pred_stack_06, method="ngb")
     #stack pred_stack and meteo_stack
     pred_stack_all <- stack(pred_stack_06, meteo)
     #extract predictor values for training gdata
@@ -138,7 +149,7 @@ for(i in 1:length(spatial_list)){
     total_stack<-rbind(total_stack, total_stack_temp)
   }
 } 
-
+)
 
 
 test <- str(total_stack$time)

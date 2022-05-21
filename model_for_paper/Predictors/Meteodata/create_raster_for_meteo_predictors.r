@@ -25,7 +25,7 @@ mapview(gadm_sf)
 setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Prädiktoren/Copernicus_grün_blau_grau/Imperviousness")
 ref_raster<-raster("copernicus_imperviousness_crop_MS_10m.tif")
 #transform polygon into Raster
-r <- raster(ncol=ncol(ref_raster), nrow=nrow(ref_raster))
+r <- raster(ncol=ncol(ref_raster), nrow=nrow(ref_raster), crs = "+proj=longlat +datum=WGS84 +no_defs")
 extent(r) <- extent(ref_raster)
 raster_Steinf<-rasterize(gadm, r)
 #values(raster_Steinf)
@@ -39,7 +39,7 @@ meteo<-left_join(trainingtimes, meteo, "datetime")
 str(meteo)
 #use for loop to create raster layer (stack for each point in time)
 #use raster_Steinf as dummy raster
-setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Prädiktoren/Meteorologie/Rasterdata/")
+setwd("C:/Users/Dana/sciebo/UHI_Meteo_Raster")
 
 for(i in 1:nrow(meteo)){
   #Temperature
@@ -72,8 +72,8 @@ for(i in 1:nrow(meteo)){
                         "meteo_cloudcover", "meteo_radiation", "meteo_cum_radiation",
                         "meteo_wind")
   #write raster into file
-  writeRaster(meteo_stack, filename = paste("Meteo_", i, 
-                                            sep="_"), overwrite=F)
+  writeRaster(meteo_stack, filename = paste("Meteo_", i,
+                                            sep="_"), overwrite=T)
 }
 
 
