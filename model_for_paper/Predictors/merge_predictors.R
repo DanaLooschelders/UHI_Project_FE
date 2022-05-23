@@ -5,7 +5,7 @@ library(rgdal)
 library(mapview)
 library(RStoolbox)
 library(sf)
-
+library(dplyr)
 library(sp)
 library(stars)
 library(CAST)
@@ -93,68 +93,115 @@ pred_stack_07 <- stack(all_static_pred_07, lidar_crs)
 load("/Users/ameliewendiggensen/sciebo/UHI_Projekt_Fernerkundung/Trainingsdaten/SpatialPoints_Temp_Data")
 #load("/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Trainingsdaten/SpatialPoints_Temp_Data")
 
-#load("/Users/ameliewendiggensen/Desktop/SpatialPoints_Temp_Data")
-#alte_sp_list <- spatial_list
+times_06 <- read.csv("/Users/ameliewendiggensen/sciebo/UHI_Projekt_Fernerkundung/Prädiktoren/Time_of_day/times_06.csv")
+times_07 <- read.csv("/Users/ameliewendiggensen/sciebo/UHI_Projekt_Fernerkundung/Prädiktoren/Time_of_day/times_07.csv")
 
-#######
-test<- raster::extract(pred_stack_all,logger_dat,df=TRUE) #problemmooo 
-test<- extract(pred_stack_all,logger_dat,df=TRUE) #problemmooo 
+times_06$date <- as.POSIXct(times_06$date,"%Y-%m-%d %H:%M:%S")
+times_06$date_time <- as.POSIXct(paste(times_06$date, times_06$time), format="%Y-%m-%d %H:%M:%S")
 
-rm(total_stack)
-
+times_07$date <- as.POSIXct(times_07$date,"%Y-%m-%d %H:%M:%S")
+times_07$date_time <- as.POSIXct(paste(times_07$date, times_07$time), format="%Y-%m-%d %H:%M:%S")
+  
+remove(total_stack)
+remove(total_stack_temp)
 #load dynamic predictors 
-system.time(for(i in 1:5){#length(spatial_list)){   
+for(i in 1:222){
   if(!exists("total_stack")){
     #index logger list to get one element
     logger_dat<-spatial_list[[i]]
     #load meteo raster stack
-    meteo<-stack(paste("/Users/Dana/sciebo/UHI_Meteo_Raster/", "Meteo__", i, ".grd", sep=""))
+    meteo<-stack(paste("/Volumes/work/UHI_Meteo_Raster/", "Meteo__", i, ".grd", sep=""))
     #meteo<-stack(paste("/Users/ameliewendiggensen/sciebo/UHI_Meteo_Raster/", "Meteo__", i, ".grd", sep=""))
     #resample meteo
     #meteo<-resample(meteo, pred_stack_06, method="ngb")
     #stack pred_stack and meteo_stack
     pred_stack_all <- stack(pred_stack_06, meteo)
     #extract predictor values for training data
-    extr <- raster::extract(pred_stack_all,logger_dat,df=TRUE) #problemmooo 
+    extr <- raster::extract(pred_stack_all,logger_dat,df=TRUE) 
     #create ID by row names
     logger_dat$ID<-row.names(logger_dat)
     #merge
     extr <- merge(extr,logger_dat@data,by.x="ID")
     #create column with time span value
     extr$time<-all_temp$datetime[as.numeric(i)]
+    extr$date_time <- extr$time
+    extr_sun <-  left_join(extr, times_06[, c("hours_sss", "hours_ssr","date_time")], by = "date_time")
     #rename
-    total_stack<-extr
+    total_stack<-extr_sun
   }
   else{
     #index logger list to get one element
     logger_dat<-spatial_list[[i]]
     #load meteo raster stack
-    meteo<-stack(paste("/Users/Dana/sciebo/UHI_Meteo_Raster/", "Meteo__", i, ".grd", sep=""))
+    meteo<-stack(paste("/Volumes/work/UHI_Meteo_Raster/", "Meteo__", i, ".grd", sep=""))
      #meteo<-stack(paste("/Users/ameliewendiggensen/sciebo/UHI_Meteo_Raster/", "Meteo__", i, ".grd", sep=""))
-    #resample meteo
-    #meteo<-resample(meteo, pred_stack_06, method="ngb")
     #stack pred_stack and meteo_stack
     pred_stack_all <- stack(pred_stack_06, meteo)
     #extract predictor values for training gdata
-    extr <- raster::extract(pred_stack_all,logger_dat,df=T) #problemmooo 
+    extr <- raster::extract(pred_stack_all,logger_dat,df=T)  
     #create ID by row names
     logger_dat$ID<-row.names(logger_dat)
     #merge
     extr <- merge(extr,logger_dat@data,by.x="ID")
     #create column with time span value
     extr$time<-all_temp$datetime[as.numeric(i)]
+    extr$date_time <- extr$time
+    extr_sun <-  left_join(extr, times_06[, c("hours_sss", "hours_ssr","date_time")], by = "date_time")
     #rename
-    total_stack_temp<-extr
+    total_stack_temp<-extr_sun
 
     total_stack<-rbind(total_stack, total_stack_temp)
   }
 } 
-)
 
-
-test <- str(total_stack$time)
-total_stack$time<-as.POSIXct(total_stack$time)
 setwd("/Users/ameliewendiggensen/sciebo/UHI_Projekt_Fernerkundung/Prädiktoren")
-write.csv(total_stack, file="total_stack_vielleicht.csv")
+write.csv(total_stack, file ="total_stack_06")
+
+remove(total_stack)
+
+#same for july
+for(i in 223:length((spatial_list))){  
+  if(!exists("total_stack")){
+    logger_dat<-spatial_list[[i]]
+    meteo<-stack(paste("/Volumes/work/UHI_Meteo_Raster/", "Meteo__", i, ".grd", sep=""))
+    pred_stack_all <- stack(pred_stack_07, meteo)
+    extr <- raster::extract(pred_stack_all,logger_dat,df=TRUE) 
+    logger_dat$ID<-row.names(logger_dat)
+    extr <- merge(extr,logger_dat@data,by.x="ID")
+    extr$time<-all_temp$datetime[as.numeric(i)]
+    extr$date_time <- extr$time
+    extr_sun <-  left_join(extr, times_07[, c("hours_sss", "hours_ssr","date_time")], by = "date_time")
+    total_stack <-extr_sun
+  }
+  else{
+    logger_dat<-spatial_list[[i]]
+    meteo<-stack(paste("/Volumes/work/UHI_Meteo_Raster/", "Meteo__", i, ".grd", sep=""))
+    pred_stack_all<- stack(pred_stack_07, meteo)
+    extr <- raster::extract(pred_stack_all,logger_dat,df=T)  
+    logger_dat$ID<-row.names(logger_dat)
+    extr <- merge(extr,logger_dat@data,by.x="ID")
+    extr$time<-all_temp$datetime[as.numeric(i)]
+    extr$date_time <- extr$time
+    extr_sun <-  left_join(extr, times_07[, c("hours_sss", "hours_ssr","date_time")], by = "date_time")
+    total_stack_temp <-extr_sun
+    
+    total_stack<-rbind(total_stack, total_stack_temp)
+  }
+}  
+
+setwd("/Users/ameliewendiggensen/sciebo/UHI_Projekt_Fernerkundung/Prädiktoren")
+write.csv(total_stack, file ="total_stack_07")
+
+total_stack_06 <- read_csv("total_stack_06")
+total_stack_07 <- read_csv("total_stack_07") 
+
+names(total_stack_07)[names(total_stack_07) == 'albedo_07'] <- 'albedo'
+names(total_stack_07)[names(total_stack_07) == 'ndvi_07'] <- 'ndvi'
+
+names(total_stack_06)[names(total_stack_06) == 'albedo_06'] <- 'albedo'
+names(total_stack_06)[names(total_stack_06) == 'ndvi_06'] <- 'ndvi'
+  
+total <- rbind(total_stack_06, total_stack_07)
+total <- total[,2:28]
 
         
