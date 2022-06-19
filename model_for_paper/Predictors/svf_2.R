@@ -87,3 +87,4 @@ files_list$LoD2_32_395_5755_1_NW.gml
 
 #crs(layer) <- NA
 #crs(layer) <- "+proj=utm +zone=32 +datum=WGS84 +units=m +no_defs"
+
