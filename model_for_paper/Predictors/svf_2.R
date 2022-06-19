@@ -89,20 +89,16 @@ files_list$LoD2_32_395_5755_1_NW.gml
 #crs(layer) <- "+proj=utm +zone=32 +datum=WGS84 +units=m +no_defs"
 
 library(gitcreds)
-credentials::set_github_pat("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")
+credentials::set_github_pat("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")
 gitcreds_set(url = "https://github.com/DanaLooschelders/UHI_Project_FE")
-?credentials::set_github_pat
+credentials::set_github_pat
 
 install.packages("usethis")
 library(usethis)
 usethis::use_git_config(user.name = "ameliewe")
+gitcreds_set()
 
-## create a personal access token for authentication:
-usethis::create_github_token() 
-## in case usethis version < 2.0.0: usethis::browse_github_token() (or even better: update usethis!)
-
-## set personal access token:
-credentials::set_github_pat("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")
+usethis::git_sitrep()
 
 
                                
