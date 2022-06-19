@@ -18,6 +18,7 @@ mapview(building_height)
 building_height
 
 setwd("/Users/ameliewendiggensen/Desktop/3d-gm_lod2_kacheln")
+setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Prädiktoren/test_gml/")
 files<-list.files(pattern=".gml")
 files_list<-vector(mode='list', length=length(files))
 names(files_list)<-files
@@ -66,11 +67,16 @@ files_list_zm[1:3]
 
 #test mit einer datei
 test<- files_list$LoD2_32_396_5755_1_NW.gml
+test<-files_list$LoD2_32_413_5762_1_NW.gml
 sf <- st_as_sf(test) 
 sf_polygons <- st_polygonize(sf)
 shp<- as(sf_polygons, "Spatial")
 
-shp <- NA #klappt nicht -> "long vectors are not suppported 
+#shp <- NA #klappt nicht -> "long vectors are not suppported 
+
+shp<- vector(mode='list', length=length(files_list)) #create empty list
+names(shp)<-names(files_list)
+
 #sonst mit files_list[[i]]<- layer macht er das auch manchmal nur mit dem ersten... 
 for (i in length(files_list)){
   layer <- files_list[[i]]
