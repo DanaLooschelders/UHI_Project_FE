@@ -18,7 +18,7 @@ mapview(building_height)
 building_height
 
 setwd("/Users/ameliewendiggensen/Desktop/3d-gm_lod2_kacheln")
-setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Prädiktoren/test_gml/")
+#setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Prädiktoren/test_gml/")
 files<-list.files(pattern=".gml")
 files_list<-vector(mode='list', length=length(files))
 names(files_list)<-files
@@ -51,8 +51,6 @@ for (i in seq(files_list)){
   files_list[[i]] <- layer
 }
 
-files_list[15] 
-
 #only do once! 
 #remove z dimension
 for (i in seq(files_list)){
@@ -61,8 +59,8 @@ for (i in seq(files_list)){
   files_list[[i]] <- layer
 }
 
-files_list_zm <- files_list
-files_list_zm[1:3]  
+files_list_backup <- files_list
+
 
 
 #test mit einer datei
@@ -72,39 +70,28 @@ sf <- st_as_sf(test)
 sf_polygons <- st_polygonize(sf)
 shp<- as(sf_polygons, "Spatial")
 
-#shp <- NA #klappt nicht -> "long vectors are not suppported 
-
 shp<- vector(mode='list', length=length(files_list)) #create empty list
 names(shp)<-names(files_list)
 
-#sonst mit files_list[[i]]<- layer macht er das auch manchmal nur mit dem ersten... 
-for (i in length(files_list)){
+for (i in seq(files_list)){
+  layer <- files_list[[i]]
+  layer_na <- layer %>% filter( is.na(st_dimension(.)) == FALSE )
+  files_list[[i]] <- layer_na
+}
+
+for (i in seq(files_list)){
   layer <- files_list[[i]]
   layer <- st_as_sf(layer)
-  layer <- st_polygonize(layer)
+  layer <- as(st_geometry(layer), "Spatial")
   layer <- as(layer, "Spatial")
   shp[[i]] <- layer
 }
 
-files_list$LoD2_32_395_5755_1_NW.gml
-
+test_geo <- files_list$LoD2_32_396_5757_1_NW.gml
+class(test_geo)
+test_empty <- test_geo %>% filter( is.na(st_dimension(.)) == FALSE )
 
 #SVF(location = r, )
 
 #crs(layer) <- NA
 #crs(layer) <- "+proj=utm +zone=32 +datum=WGS84 +units=m +no_defs"
-
-library(gitcreds)
-credentials::set_github_pat("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")
-gitcreds_set(url = "https://github.com/DanaLooschelders/UHI_Project_FE")
-credentials::set_github_pat
-
-install.packages("usethis")
-library(usethis)
-usethis::use_git_config(user.name = "ameliewe")
-gitcreds_set()
-
-usethis::git_sitrep()
-
-
-                               
