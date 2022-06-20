@@ -83,8 +83,8 @@ i=6
 for (i in seq(files_list)[1:10]){
   layer <- files_list[[i]]
   layer <- st_as_sf(layer)
-  layer <- as(st_geometry(layer), "Spatial")
   layer <- st_polygonize(layer)
+  layer <- as(st_geometry(layer), "Spatial")
   crs(layer) <- NA 
   crs(layer) <- "+proj=utm +zone=32 +datum=WGS84 +units=m +no_defs"
   shp[[i]] <- layer
