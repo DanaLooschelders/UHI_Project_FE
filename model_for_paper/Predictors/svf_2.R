@@ -79,19 +79,28 @@ for (i in seq(files_list)){
   files_list[[i]] <- layer_na
 }
 
-for (i in seq(files_list)){
+i=6
+for (i in seq(files_list)[1:10]){
   layer <- files_list[[i]]
   layer <- st_as_sf(layer)
   layer <- as(st_geometry(layer), "Spatial")
-  layer <- as(layer, "Spatial")
+  layer <- st_polygonize(layer)
+  crs(layer) <- NA 
+  crs(layer) <- "+proj=utm +zone=32 +datum=WGS84 +units=m +no_defs"
   shp[[i]] <- layer
 }
 
+files_list$LoD2_32_396_5756_1_NW.gml
 test_geo <- files_list$LoD2_32_396_5757_1_NW.gml
 class(test_geo)
 test_empty <- test_geo %>% filter( is.na(st_dimension(.)) == FALSE )
 
 #SVF(location = r, )
+gitcreds_set(url = "https://github.com/DanaLooschelders/UHI_Project_FE")
+gitcreds::gitcreds_set()
+usethis::git_sitrep()
+usethis::use_git_config(user.name = "ameliewe")
+credentials::set_github_pat("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")
 
 #crs(layer) <- NA
 #crs(layer) <- "+proj=utm +zone=32 +datum=WGS84 +units=m +no_defs"
