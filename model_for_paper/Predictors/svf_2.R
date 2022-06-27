@@ -82,19 +82,24 @@ for (i in seq(files_list)){
 i = 23
 for (i in seq(files_list)){
   layer <- files_list[[i]]
+  layer$ID <- 1:length(layer$measuredHeight)
   layer <- st_as_sf(layer)
   layer <- st_polygonize(layer)
-  layer <- as(st_geometry(layer), "Spatial")
+  layer <- as(st_geometry(layer), "Spatial") 
   crs(layer) <- NA 
   crs(layer) <- "+proj=utm +zone=32 +datum=WGS84 +units=m +no_defs"
   shp[[i]] <- layer
 }
 
-test_23 <-(files_list)[25]
+layer$ID <- 
+test_23 <-(files_list)[23]
+test_unique <- sp:::makeUniqueIDs(test_23)
+
 files_list$LoD2_32_396_5756_1_NW.gml
 test_geo <- files_list$LoD2_32_396_5757_1_NW.gml
 class(test_geo)
 test_empty <- test_geo %>% filter( is.na(st_dimension(.)) == FALSE )
+
 
 #SVF(location = r, )
 
