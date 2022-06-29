@@ -61,25 +61,30 @@ for (i in seq(files_list)){
 
 files_list_backup <- files_list
 
-files_list <- files_list_backup
+#files_list <- files_list_backup
 
 #test mit einer datei
 test<- files_list$LoD2_32_396_5755_1_NW.gml
 test<-files_list$LoD2_32_413_5762_1_NW.gml
 sf <- st_as_sf(test) 
 sf_polygons <- st_polygonize(sf)
-shp<- as(sf_polygons, "Spatial")
+shp_test <- as(sf_polygons, "Spatial")
 
+#### mit allen #### 
 shp<- vector(mode='list', length=length(files_list)) #create empty list
 names(shp)<-names(files_list)
 
-for (i in seq(files_list)){
+#test <- files_list[23]
+#test <- test$LoD2_32_398_5752_1_NW.gml
+#test_na <- test[!sf::st_is_empty(test), ] %>% na.omit() #klappt 
+
+for (i in seq(files_list)[16:27]){
   layer <- files_list[[i]]
-  layer_na <- layer %>% filter( is.na(st_dimension(.)) == FALSE )
+  layer_na <- layer[!sf::st_is_empty(layer), ] %>% na.omit()
   files_list[[i]] <- layer_na
 }
 
-i = 23
+i=23
 for (i in seq(files_list)){
   layer <- files_list[[i]]
   layer$ID <- 1:length(layer$measuredHeight)
@@ -91,9 +96,12 @@ for (i in seq(files_list)){
   shp[[i]] <- layer
 }
 
-layer$ID <- 
-test_23 <-(files_list)[23]
-test_unique <- sp:::makeUniqueIDs(test_23)
+shp[22]
+
+test <-(files_list)[23]
+test <- test$LoD2_32_398_5752_1_NW.gml
+test$ID <- 1:length(test$measuredHeight)
+
 
 files_list$LoD2_32_396_5756_1_NW.gml
 test_geo <- files_list$LoD2_32_396_5757_1_NW.gml
