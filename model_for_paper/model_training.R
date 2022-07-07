@@ -30,6 +30,8 @@ total_stack <- total_stack[complete.cases(total_stack),]
 #delete columns
 total_stack<-total_stack[,-c(1,26)]
 
+write.csv(total_stack, "total_stack.csv", row.names=F)
+
 #create space folds
 traintemps <- CreateSpacetimeFolds(total_stack,
                                    spacevar="ID", #use row.name as ID
@@ -63,6 +65,6 @@ model
 
 #save model in sciebo
 setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Modell")
-saveRDS(model,file="ffs_Model_2022-05-23.RDS") # modell speichern!
+#saveRDS(model,file="ffs_Model_2022-05-23.RDS") # modell speichern!
 
-model<-readRDS(file="ffs_Model_2022-05-23.RDS")
+model<-readRDS(file="ffs_Model_2022-07-07.RDS")
