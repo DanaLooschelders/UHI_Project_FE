@@ -155,7 +155,7 @@ for(i in 1:222){
 } 
 
 setwd("/Users/ameliewendiggensen/sciebo/UHI_Projekt_Fernerkundung/Prädiktoren")
-write.csv(total_stack, file ="total_stack_06")
+write.csv(total_stack, file ="total_stack_06.csv")
 
 remove(total_stack)
 
@@ -190,7 +190,7 @@ for(i in 223:length((spatial_list))){
 }  
 
 setwd("/Users/ameliewendiggensen/sciebo/UHI_Projekt_Fernerkundung/Prädiktoren")
-write.csv(total_stack, file ="total_stack_07")
+write.csv(total_stack, file ="total_stack_07.csv")
 
 total_stack_06 <- read_csv("total_stack_06")
 total_stack_07 <- read_csv("total_stack_07") 
@@ -203,5 +203,7 @@ names(total_stack_06)[names(total_stack_06) == 'ndvi_06'] <- 'ndvi'
   
 total <- rbind(total_stack_06, total_stack_07)
 total <- total[,2:28]
+
+write.csv(total, file ="total_stack.csv")
 
         
