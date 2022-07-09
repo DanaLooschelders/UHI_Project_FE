@@ -204,6 +204,6 @@ names(total_stack_06)[names(total_stack_06) == 'ndvi_06'] <- 'ndvi'
 total <- rbind(total_stack_06, total_stack_07)
 total <- total[,2:28]
 
-write.csv(total, file ="total_stack.csv")
+write.csv(total, file ="total_stack_new.csv")
 
         
