@@ -28,9 +28,15 @@ varImp(model)
 #as plot
 plot(varImp(model))
 
+#load meteo data
+setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Prädiktoren/Meteorologie")
+#setwd("/Users/ameliewendiggensen/sciebo/UHI_Projekt_Fernerkundung/Prädiktoren/Meteorologie")
+meteo<-read.csv("meteo_for_raster.csv")
+str(meteo)
 #predict
-sample<-sample(1:nrow(meteo),5)
-#random sample is 170 341  547 547 547
+sample<-sample(1:nrow(meteo),10)
+sample
+#random sample is 163 317 697 438 431 263 329 609  36  17
 
 #load static pred stack
 setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Prädiktoren")
@@ -39,10 +45,13 @@ names(pred_stack_06)[1:2]<-c("albedo","ndvi") #rename to match model
 pred_stack_07<-stack("all_static_pred_07.grd")
 names(pred_stack_07)[1:2]<-c("albedo","ndvi") #rename to match model
 
+
 #load dynamic meteo preds (5 randomly sampled from all meteo files)
-setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Prediction/Meteo_for_prediction")
-meteo_547<-stack("Meteo__547.grd")
-meteo_547$meteo_stability
+setwd("E:/meteo_raster/")
+meteo_163<-stack("Meteo__163.grd")
+meteo_609<-stack("Meteo__609.grd")
+meteo_36<-stack("Meteo__36.grd")
+
 #load time_of_day data and write as raster
 times_06 <- read.csv("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Prädiktoren/Time_of_day/times_06.csv")
 times_07 <- read.csv("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Prädiktoren/Time_of_day/times_07.csv")
@@ -85,8 +94,9 @@ for(i in sample){
 
 #load time raster
 setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Prediction/sunshinehours_for_prediction")
-time_547<-stack("time__547.grd")
-
+time_163<-stack("time__163.grd")
+time_609<-stack("time__609.grd")
+time_36<-stack("time__36.grd")
 
 #load lidar data
 #stack with lidar data 
@@ -108,47 +118,41 @@ values(lidar_crs$building_height_sd_3x3)[is.na(values(lidar_crs$building_height_
 values(lidar_crs$building_height_sd_5x5)[is.na(values(lidar_crs$building_height_sd_5x5))]<-0
 
 #stack all
-pred_stack_all_547 <- stack(pred_stack_07, lidar_crs, meteo_547, time_547)
+pred_stack_all_163 <- stack(pred_stack_07, lidar_crs, meteo_163, time_163)
 
 #mapview(pred_stack_all_547, maxpixels =  5073950)
 #plot(pred_stack_all_547)
 
-names(pred_stack_all_547)
+names(pred_stack_all_163)
+plot(pred_stack_all_163)
 
 #save as raster
-setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Modell")
-writeRaster(pred_stack_all_547,filename= "pred_stack_all_547.tif", bylayer=F,format="raster",overwrite=T)
-
-#check
-names(pred_stack_07)
-plot(pred_stack_07)
-
-names(lidar_crs)
-plot(lidar_crs)
-
-names(meteo_547)
-plot(meteo_547)
-
-names(time_547)
-plot(time_547)
+setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Modell/pred_stacks/")
+writeRaster(pred_stack_all_163,filename= "pred_stack_all_163.tif", bylayer=F,format="raster",overwrite=T)
 
 #predict
-model_547_predict<-predict(pred_stack_all_547, model, savePrediction=TRUE)
+model_163_predict<-predict(pred_stack_all_163, model, savePrediction=TRUE)
+#view
+mapview(model_163_predict, maxpixels =  5073950)
 
-mapview(model_547_predict, maxpixels =  5073950)
-
-any(!is.na(values(model_547_predict)))
 #check which time was predicted
-all_temp[547,] #2020-07-20 14:00:00
+all_temp[163,] #2020-06-16 12:00:00
 all_temp[547,] #2020-07-16 01:00:00 
 
 #calculate AOA
-pred_stack_547_selected_vars<-dropLayer(pred_stack_all_547, setdiff(names(pred_stack_all_547),model$selectedvars))#drop layers with vars not used
-model_547_aoa<-aoa(pred_stack_547_selected_vars, model, cl=cl)
+model_163_aoa<-aoa(pred_stack_all_163, model, cl=cl)
+mapview(model_163_aoa$DI)
+
+summary(model$trainingData)
+summary(model_163_aoa$AOA)
+summary(model_163_aoa$DI)
+plot(model_163_aoa$DI)
+plot(model_163_aoa$AOA)
+
+pred_stack_163_selected_vars<-dropLayer(pred_stack_all_163, setdiff(names(pred_stack_all_547),model$selectedvars))#drop layers with vars not used
+model_163_aoa<-aoa(pred_stack_163_selected_vars, model, cl=cl)
 
 train_new<-model$trainingData
-
-table(total_stack$meteo_stability)
 
 for(i in 1:ncol(train_new)){
   var<-var(train_new[,i])

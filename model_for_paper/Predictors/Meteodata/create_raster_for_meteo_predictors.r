@@ -46,6 +46,7 @@ trainingtimes<-data.frame("datetime"=as.POSIXct(all_temp$datetime))
 meteo$datetime<-as.POSIXct(meteo$datetime)
 meteo<-left_join(trainingtimes, meteo, "datetime")
 str(meteo)
+write.csv(meteo, "meteo_for_raster.csv", row.names = F)#save
 #use for loop to create raster layer (stack for each point in time)
 #use raster_Steinf as dummy raster
 #setwd("C:/Users/Dana/sciebo/UHI_Meteo_Raster")
