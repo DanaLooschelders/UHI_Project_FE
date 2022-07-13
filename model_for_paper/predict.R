@@ -20,6 +20,10 @@ no_cores <- detectCores() - 1
 cl <- makeCluster(no_cores) 
 registerDoParallel(cl)
 
+#load model
+setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Modell")
+load(file = "result_20220713.RData")
+
 #RMSE
 plot(model)
 
@@ -35,7 +39,7 @@ meteo<-read.csv("meteo_for_raster.csv")
 str(meteo)
 #predict
 sample<-sample(1:nrow(meteo),10)
-sample
+sample<-c(163, 317, 697, 438, 431, 263, 329, 609,  36,  17)
 #random sample is 163 317 697 438 431 263 329 609  36  17
 
 #load static pred stack
@@ -118,91 +122,89 @@ values(lidar_crs$building_height_sd_3x3)[is.na(values(lidar_crs$building_height_
 values(lidar_crs$building_height_sd_5x5)[is.na(values(lidar_crs$building_height_sd_5x5))]<-0
 
 #stack all
-pred_stack_all_163 <- stack(pred_stack_07, lidar_crs, meteo_163, time_163)
-
+pred_stack_all_163 <- stack(pred_stack_06, lidar_crs, meteo_163, time_163)
+pred_stack_all_609<- stack(pred_stack_07, lidar_crs, meteo_609, time_609)
+pred_stack_all_36<- stack(pred_stack_06, lidar_crs, meteo_36, time_36)
 #mapview(pred_stack_all_547, maxpixels =  5073950)
 #plot(pred_stack_all_547)
 
 names(pred_stack_all_163)
 plot(pred_stack_all_163)
+plot(pred_stack_all_609)
 
 #save as raster
 setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Modell/pred_stacks/")
 writeRaster(pred_stack_all_163,filename= "pred_stack_all_163.tif", bylayer=F,format="raster",overwrite=T)
+writeRaster(pred_stack_all_609,filename= "pred_stack_all_609.tif", bylayer=F,format="raster",overwrite=T)
+writeRaster(pred_stack_all_36,filename= "pred_stack_all_36.tif", bylayer=F,format="raster",overwrite=T)
+
+#load raster
+pred_stack_all_163<-stack("pred_stack_all_163.grd")
+pred_stack_all_609<-stack("pred_stack_all_36.grd")
+pred_stack_all_36<-stack("pred_stack_all_609.grd")
+
+range_pred<-data.frame(rep(NA, times=nlayers(pred_stack_all_609)))
+range_pred$highest<-NA
+for(i in 1:nlayers(pred_stack_all_609)){
+  range_pred[i,]<-range(values(pred_stack_all_609[[i]]), na.rm=T)
+}
+range_pred$names<-names(pred_stack_all_609)
+#extract a smaller area
+plot(pred_stack_all_36$albedo)
+extent(pred_stack_all_36)
+coords<-c(7.473961, 7.484256 , 51.8402 , 51.85021)
+pred_stack_small<-crop(pred_stack_all_36, coords)
+pred_stack_small_2<-crop(pred_stack_all_609, coords)
+mapview(pred_stack_small)
+aoa_test<-aoa(pred_stack_small, model)
+aoa_test_2<-aoa(pred_stack_small_2, model)
+
+plot(aoa_test_2)
+
+plot(pred_stack_small[[1:10]])
+plot(pred_stack_small[[11:22]])
+
+plot(model$trainingData)
+for(i in 1:length(model$trainingData)){
+  print(range(model$trainingData[,i]))
+}
+
+range_td<-lapply(model$trainingData, range)
+range_df<-data.frame( "range"=range_td)
+test<-do.call(rbind.data.frame, range_td)
+test$names<-names(range_td)
+names(test)<-c("lowest", "highest", "name")
 
 #predict
 model_163_predict<-predict(pred_stack_all_163, model, savePrediction=TRUE)
+model_609_predict<-predict(pred_stack_all_609, model, savePrediction=TRUE)
+model_36_predict<-predict(pred_stack_all_36, model, savePrediction=TRUE)
+
 #view
 mapview(model_163_predict, maxpixels =  5073950)
+plot(model_609_predict)
+mapview(model_609_predict)
+
+plot(model_36_predict)
+mapview(model_36_predict)
 
 #check which time was predicted
 all_temp[163,] #2020-06-16 12:00:00
-all_temp[547,] #2020-07-16 01:00:00 
+all_temp[609,] #2020-07-23 04:00:00 
+all_temp[36,] #2020-06-11 05:00:00 
 
 #calculate AOA
 model_163_aoa<-aoa(pred_stack_all_163, model, cl=cl)
 mapview(model_163_aoa$DI)
 
+#aoa only NAs
 summary(model$trainingData)
 summary(model_163_aoa$AOA)
 summary(model_163_aoa$DI)
-plot(model_163_aoa$DI)
+barplot(values(model_163_aoa$DI))
+
 plot(model_163_aoa$AOA)
+which.max(values(model_163_aoa$DI))
 
-pred_stack_163_selected_vars<-dropLayer(pred_stack_all_163, setdiff(names(pred_stack_all_547),model$selectedvars))#drop layers with vars not used
-model_163_aoa<-aoa(pred_stack_163_selected_vars, model, cl=cl)
-
-train_new<-model$trainingData
-
-for(i in 1:ncol(train_new)){
-  var<-var(train_new[,i])
-  print(var)
-}
-#stability has no variance
-table(meteo$meteo_stability)
-as.factor(meteo$meteo_stability)
-
-#stackApply(pred_stack_all_547,indices=c(seq(1:nlayers(pred_stack_all_547))), fun=var)
-vars<-rep(NA, nlayers(pred_stack_all_547)) #create output dataframe
-nas<-rep(NA, nlayers(pred_stack_all_547))
-for(i in 1:nlayers(pred_stack_all_547)){
-  #check variance
-  variance<-var(values(pred_stack_all_547[[i]]), na.rm=T)
-  vars[i]<-variance
-  #check nas
-  navalues<-any(is.na(values(pred_stack_all_547[[i]])))
-  nas[i]<-navalues
-}
-nas
-vars
-
-any(is.na(values(pred_stack_all_547$albedo)))
-
-####check old stuff#### 
-#load model
-setwd("C:/Users/Dana/sciebo/Archive_UHI_Projekt_FE/Modelle")
-old_model<-readRDS("ffs_Model_2021-08-10.RDS")
-#old pred stack
-setwd("C:/Users/Dana/sciebo/Archive_UHI_Projekt_FE/Daten_bearbeitet")
-pred_stack<-stack("pred_stack.grd")
-meteo_day<-stack("C:/Users/Dana/sciebo/Archive_UHI_Projekt_FE/Daten_bearbeitet/Meteo_data_steinf/Meteo_MOD11A1_A2020157_22_23.grd")
-#resample meteo
-meteo<-raster::resample(meteo_day, pred_stack, method="ngb")
-mapview(pred_stack)
-
-vars<-rep(NA, nlayers(pred_stack)) #create output dataframe
-any(is.na(values(pred_stack$copernicus_tree_cover_MS_100m)))
-any(is.na(values(pred_stack$dlm_raster)))
-any(is.na(values(pred_stack$ucz_ms_100m)))
-
-for(i in 1:nlayers(pred_stack)){
-  variance<-var(values(pred_stack[[i]]))
-  vars[i]<-variance
-}
-vars
-
-pred_stack_all_old<-stack(pred_stack, meteo)
-names(pred_stack_all_old)
-test<-aoa(pred_stack_all_old, old_model, cl=cl)
-
-train_old<-old_model$trainingData
+summary(values(model_163_aoa$DI))
+sum(!is.na(values(model_163_aoa$DI)))
