@@ -13,15 +13,8 @@ library(lubridate)
 library(openair)
 #load meteo data
 setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Prädiktoren/Meteorologie")
-#setwd("/Users/ameliewendiggensen/sciebo/UHI_Projekt_Fernerkundung/Prädiktoren/Meteorologie")
 meteo<-read.csv("meteo_all.csv")
 str(meteo)
-#change stability to numeric
-meteo$meteo_stability[meteo$meteo_stability=="unstable"]<-0
-meteo$meteo_stability[meteo$meteo_stability=="stable"]<-1
-str(meteo$meteo_stability) #check
-meteo$meteo_stability<-as.numeric(meteo$meteo_stability) #convert to numeric
-str(meteo$meteo_stability) #check
 
 #get shape of polygon
 gadm <- getData('GADM', country='DEU', level=2)
@@ -30,7 +23,6 @@ gadm_sf <- as(gadm,"sf")
 mapview(gadm_sf)
 #load refrence raster
 setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Prädiktoren/Copernicus_grün_blau_grau/Imperviousness")
-#setwd("/Users/ameliewendiggensen/sciebo/UHI_Projekt_Fernerkundung/Prädiktoren/Copernicus_grün_blau_grau/Imperviousness")
 ref_raster<-raster("copernicus_imperviousness_crop_MS_10m.tif")
 #transform polygon into Raster
 r <- raster(ncol=ncol(ref_raster), nrow=nrow(ref_raster), crs = "+proj=longlat +datum=WGS84 +no_defs")
@@ -40,18 +32,14 @@ raster_Steinf<-rasterize(gadm, r)
 
 #shorten meteo to only the times the training data is available
 setwd( "C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Trainingsdaten/Logger")
-#setwd("/Users/ameliewendiggensen/sciebo/UHI_Projekt_Fernerkundung/Trainingsdaten/Logger")
 all_temp<-read.csv("all_temp.csv")
 trainingtimes<-data.frame("datetime"=as.POSIXct(all_temp$datetime))
 meteo$datetime<-as.POSIXct(meteo$datetime)
 meteo<-left_join(trainingtimes, meteo, "datetime")
 str(meteo)
-write.csv(meteo, "meteo_for_raster.csv", row.names = F)#save
 #use for loop to create raster layer (stack for each point in time)
 #use raster_Steinf as dummy raster
-#setwd("C:/Users/Dana/sciebo/UHI_Meteo_Raster")
-#setwd("/Volumes/work/UHI_Meteo_Raster")
-setwd("E:/meteo_raster") #use external hard drive to not kill sciebo
+setwd("C:/Users/Dana/sciebo/UHI_Meteo_Raster")
 
 for(i in 1:nrow(meteo)){
   #Temperature
@@ -62,7 +50,7 @@ for(i in 1:nrow(meteo)){
   values(raster_Steinf_RH)<-meteo$meteo_rH[i]
   #stability
   raster_Steinf_stability<-raster_Steinf
-  values(raster_Steinf_stability)<-meteo$meteo_stability[i]
+  values(raster_Steinf_stability)<-as.factor(meteo$meteo_stability[i])
   #cloudcover
   raster_Steinf_cloudcover<-raster_Steinf
   values(raster_Steinf_cloudcover)<-meteo$meteo_cloudcover[i]
@@ -87,6 +75,4 @@ for(i in 1:nrow(meteo)){
   writeRaster(meteo_stack, filename = paste("Meteo_", i,
                                             sep="_"), overwrite=T)
 }
-
-
 

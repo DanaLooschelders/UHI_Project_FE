@@ -9,8 +9,8 @@ registerDoParallel(cl)
 
 setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Prädiktoren")
 #load total stack
-total_stack<-read.csv("total_stack.csv")
-
+total_stack<-read.csv("total_stack_new.csv")
+table(total_stack$meteo_stability)
 #set height of non-existing buildings to 0 
 total_stack$building_height[is.na(total_stack$building_height)]<-0
 total_stack$building_height_sd_3x3[is.na(total_stack$building_height_sd_3x3)]<-0
@@ -29,6 +29,8 @@ total_stack <- total_stack[complete.cases(total_stack),]
 
 #delete columns
 total_stack<-total_stack[,-c(1,26)]
+
+write.csv(total_stack, "total_stack_20220710.csv", row.names=F)
 
 #create space folds
 traintemps <- CreateSpacetimeFolds(total_stack,
@@ -63,6 +65,6 @@ model
 
 #save model in sciebo
 setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Modell")
-saveRDS(model,file="ffs_Model_2022-05-23.RDS") # modell speichern!
+#saveRDS(model,file="ffs_Model_2022-05-23.RDS") # modell speichern!
 
-model<-readRDS(file="ffs_Model_2022-05-23.RDS")
+model<-readRDS(file="ffs_Model_2022-07-07.RDS")
