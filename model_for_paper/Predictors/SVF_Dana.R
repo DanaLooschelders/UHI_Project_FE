@@ -7,6 +7,9 @@ library(shadow)
 library(parallel)
 library(doParallel)
 library(purrr)
+library(raster)
+library(rgdal)
+library(mapview)
 
 #prep data
 #setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Prädiktoren/test_gml/")
@@ -37,19 +40,22 @@ for (i in index_NULL_files){
   }, error=function(e){message("Caught an error")})
 }
 
+#check how many files are NULL
 length(Filter(is.null, files_list))
+#remove NULL files
 files_list<-files_list[vapply(files_list, Negate(is.null), NA)]
 
+#extract just height, geometry and ID
 for (i in seq(files_list)){
   layer <- files_list[[i]]
-  layer <- layer[,"measuredHeight"]
+  layer <- layer[,c("measuredHeight", "gml_id")]
   files_list[[i]] <- layer
 }
 
+#check
 class(files_list[[1]])
 plot(files_list[[2]])
 
-?st_zm
 #only do once! 
 #remove z dimension
 for (i in seq(files_list)){
@@ -58,8 +64,6 @@ for (i in seq(files_list)){
   files_list[[i]] <- layer
 }
 
-files_list_backup <- files_list
-
 #####transform to spatial polygon dataframe####
 shp<- vector(mode='list', length=length(files_list)) #create empty list
 names(shp)<-names(files_list)
@@ -67,14 +71,12 @@ names(shp)<-names(files_list)
 shp_height<-vector(mode='list', length=length(files_list)) #create empty list
 names(shp_height)<-names(files_list)
 #remove empty geometries
-i=1
-x=3
-class(layer)
+
+#transform to spatialPolygons
 for (i in seq(files_list)){
   tryCatch(expr={
   print(i) #see where error occurs
   layer <- files_list[[i]]
-  #layer$ID <- as.factor(1:length(layer$measuredHeight)) #add ID
   layer <- st_as_sf(layer)
   empty_geometry<-rep(NA, length=nrow(layer))
   for(x in 1:nrow(layer)){ #check every row in layer
@@ -103,17 +105,16 @@ for (i in seq(files_list)){
 }
 
 length(which(sapply(shp, is.null))) #check how many list entries are NULL
-#16 entries are NULL
 shp[sapply(shp, is.null)] <- NULL #remove NULL entries
-#same for list with heights
-length(which(sapply(shp_height, is.null))) #check how many list entries are NULL
 #16 entries are NULL
+
+#same for shp_height
+length(which(sapply(shp_height, is.null))) #check how many list entries are NULL
 shp_height[sapply(shp_height, is.null)] <- NULL #remove NULL entries
 
 #create new list
 spdf<- vector(mode='list', length=length(shp)) #create empty list
 names(spdf)<-names(shp)
-
 
 #tranform to SpatialPolygonsDataFrame
 for(i in 1:length(shp)){
@@ -133,12 +134,14 @@ length(which(sapply(spdf, is.null))) #check how many list entries are NULL
 
 #rowbind list of spatialPolygonsdatafarme
 obstacles_df <- do.call("rbind", spdf)
+
 #test
 plot(obstacles_df[1:100,])
-
+#create output vectors
 no_height_index=rep(FALSE, length(obstacles_df$height))
 test_vec<-rep(NA, length(no_height_index))
 
+#see wich heights are empty
 for(i in 1:length(obstacles_df$height)){
   if(!is_empty(obstacles_df$height[[i]])){
     test_vec[i]<-unlist(obstacles_df$height[[i]])
@@ -146,26 +149,42 @@ for(i in 1:length(obstacles_df$height)){
     no_height_index[i]<-TRUE
   }
 }
-
+#count number of empty heights
 length(which(no_height_index==TRUE)) #9303
 
-obstacles_df_complete<-obstacles_df[!no_height_index,] #remove rows with NA height
+#remove rows with NA height
+obstacles_df_complete<-obstacles_df[!no_height_index,] 
 test_vec_complete<-test_vec[!no_height_index]
 
 obstacles_df_complete$height_vec<-test_vec_complete
 obstacles_df_complete$height<-NULL
 
-#load height raster
-setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Prädiktoren/lidar")
-svf_raster<-raster("Lidar_building_height.grd")
-plot(svf_raster) #check
-#set all values to NA
-values(svf_raster)<-NA
-plot(svf_raster) #check
+#####create height raster####
+sqrt(86042)
+293*294
+#create raster
+r<-raster(nrow=293, ncol=294)
+#set extent to polygon dataframe
+extent(r) <- extent(obstacles_df_complete)
+#rasterize polygons
+svf_ras<-rasterize(x = obstacles_df_complete, y = r)#,  CRS("+proj=utm +zone=32 +datum=WGS84 +units=m +no_defs"))
+crs(svf_ras) #check crs
+ncell(svf_ras)
+plot(svf_ras)
+#####create spatial points####
+svf_points<-spsample(obstacles_df_complete, n=length(obstacles_df_complete), type="stratified")
+spplot(svf_points)
+mapview(svf_points)
 
-#check that crs is the same 
-crs(svf_raster)
-crs(obstacles_df)
+#save to file
+setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Prädiktoren/sky view factor")
+write_rds(svf_ras, file="svf_ras.grd")
+
+read_rds("svf_ras.grd") #check 
+
+writeOGR(obj=obstacles_df_complete, driver="ESRI Shapefile", dsn="obstacles", layer="height")
+
+readOGR("obstacles/height.shp") #test
 
 
 ####SVF####
@@ -176,10 +195,12 @@ crs(obstacles_df)
 no_cores <- detectCores() - 1  
 
 svf_test<-SVF(
-  location=svf_raster,
+  location=svf_ras,
   obstacles=obstacles_df_complete,
   obstacles_height_field="height_vec",
   res_angle = 5,
   b = 0.01,
   parallel = no_cores
 )
+
+
