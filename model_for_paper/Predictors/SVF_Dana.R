@@ -33,12 +33,15 @@ for(i in files){
 length(Filter(is.null, files_list))
 index_NULL_files<-names(Filter(is.null, files_list))
 
+i=index_NULL_files[[1]]
+files_list[[i]]
 for (i in index_NULL_files){
   tryCatch(expr={
     #read in files and set crs
     files_list[[i]]<-read_sf(i,crs="+proj=utm +zone=32 +datum=WGS84 +units=m +no_defs" )
   }, error=function(e){message("Caught an error")})
 }
+
 
 #check how many files are NULL
 length(Filter(is.null, files_list))
@@ -104,6 +107,70 @@ for (i in seq(files_list)){
  }, error=function(e){message("WHops! Caught an error")})
 }
 
+index_ERROR_files<-which(sapply(shp, is.null))
+
+#Error handling loop
+
+for (i in index_ERROR_files){
+  tryCatch(expr={
+    print(i) #see where error occurs
+    layer <- files_list[[i]]
+    layer <- st_as_sf(layer)
+
+empty_geometry<-rep(NA, length=nrow(layer))
+for(x in 1:nrow(layer)){ #check every row in layer
+  if(class(layer[x,]$geometry)[1]=="sfc_POLYHEDRALSURFACE"){ #check if geometry type is correct
+    empty_geometry[x]<-x
+  }else{}
+  if(is.na(layer[x,]$measuredHeight)){ #check if height is NA
+    empty_geometry[x]<-x 
+  }else{}
+}
+empty_geometry<-empty_geometry[!is.na(empty_geometry)] #drop NAs
+if(length(empty_geometry)!=0){ #if there are empty geometries
+  layer<-layer[-c(empty_geometry),] #drop rows with wrong geometry type
+}
+layer <- st_polygonize(layer)
+if(any(st_is_empty(layer))){ #check if there are still empty geometries
+  layer<-layer[!st_is_empty(layer),] #remove empty geometries
+}
+
+#disaggregate all polygons into list 
+layer_list<-data_list <- split(layer, seq(nrow(layer)))  
+layer_shp_list<-vector(mode='list', length=length(layer_list)) #new output list
+#loop through list and convert every single polygon
+for(z in 1:length(layer_list)){
+  tryCatch(expr={
+  layer_shp_list[[z]]<-as(st_geometry(layer_list[[z]]), "Spatial")
+  if(validObject(layer_shp_list[[z]])==FALSE){
+    layer_shp_list[[z]]<-NA
+  }else{}
+  }, error=function(e){message("WHops! Caught an error in conversion")})
+}
+
+#remove empty polygons 
+layer_shp_list[sapply(layer_shp_list, is.null)] <- NULL #remove NULL entries
+#Assign new Polygon IDs
+orig_ID <- sapply(layer_shp_list, function(x)
+  slot(slot(x, "polygons")[[1]], "ID"))
+
+new_IDs=paste0(orig_ID, 1:length(layer_shp_list))
+for (y in 1:length(layer_shp_list)){
+  slot(slot(layer_shp_list[[y]], "polygons")[[1]], "ID") = new_IDs[y]
+}
+
+#Making new SpatialPolygon from list of polygons
+new_layer <- SpatialPolygons(lapply(layer_shp_list,
+                               function(x) slot(x, "polygons")[[1]]))
+#preserve height
+shp_height[[i]]<-layer$measuredHeight
+crs(new_layer) <- NA #delete original crs
+crs(new_layer) <- "+proj=utm +zone=32 +datum=WGS84 +units=m +no_defs" #set new crs
+shp[[i]] <- new_layer #write into new list
+  }, error=function(e){message("WHops! Caught a fatal error")})
+}
+
+
 length(which(sapply(shp, is.null))) #check how many list entries are NULL
 shp[sapply(shp, is.null)] <- NULL #remove NULL entries
 #16 entries are NULL
@@ -112,10 +179,19 @@ shp[sapply(shp, is.null)] <- NULL #remove NULL entries
 length(which(sapply(shp_height, is.null))) #check how many list entries are NULL
 shp_height[sapply(shp_height, is.null)] <- NULL #remove NULL entries
 
+#some heights are a list -> coerce to vector
+shp_height_error<-which(sapply(shp_height, is.list))
+
+for(i in shp_height_error){
+  list<-shp_height[[i]]
+  nolist<-unlist(list)
+  shp_height[[i]]<-nolist
+}
+
 #create new list
 spdf<- vector(mode='list', length=length(shp)) #create empty list
 names(spdf)<-names(shp)
-
+i=336
 #tranform to SpatialPolygonsDataFrame
 for(i in 1:length(shp)){
   tryCatch(expr={
@@ -126,7 +202,7 @@ for(i in 1:length(shp)){
     }else{}
   spdf[[i]]<-as(shp[[i]], "SpatialPolygonsDataFrame")
   spdf[[i]]$height<-shp_height[[i]]
-  }, error=function(e){message("WHops! Caught an error")})
+  }, error=function(e){message("WHops! Caught a fatal error")})
 }
 
 length(which(sapply(spdf, is.null))) #check how many list entries are NULL
@@ -134,6 +210,10 @@ length(which(sapply(spdf, is.null))) #check how many list entries are NULL
 
 #rowbind list of spatialPolygonsdatafarme
 obstacles_df <- do.call("rbind", spdf)
+ncols<-sapply(spdf, ncol)
+any(ncols!=2)
+which(ncols!=2)
+spdf[[133]]
 
 #test
 plot(obstacles_df[1:100,])
