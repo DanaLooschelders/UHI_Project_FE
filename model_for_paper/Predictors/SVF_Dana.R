@@ -107,7 +107,7 @@ for (i in seq(files_list)){
  }, error=function(e){message("WHops! Caught an error")})
 }
 
-index_ERROR_files<-which(sapply(shp, is.null))
+ index_ERROR_files<-which(sapply(shp, is.null))
 
 #Error handling loop
 

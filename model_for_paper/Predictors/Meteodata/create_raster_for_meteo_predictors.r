@@ -32,6 +32,8 @@ mapview(gadm_sf)
 setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Prädiktoren/Copernicus_grün_blau_grau/Imperviousness")
 #setwd("/Users/ameliewendiggensen/sciebo/UHI_Projekt_Fernerkundung/Prädiktoren/Copernicus_grün_blau_grau/Imperviousness")
 ref_raster<-raster("copernicus_imperviousness_crop_MS_10m.tif")
+ncell(ref_raster)
+res(ref_raster)
 #transform polygon into Raster
 r <- raster(ncol=ncol(ref_raster), nrow=nrow(ref_raster), crs = "+proj=longlat +datum=WGS84 +no_defs")
 extent(r) <- extent(ref_raster)
