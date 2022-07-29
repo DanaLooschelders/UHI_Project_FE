@@ -33,8 +33,6 @@ for(i in files){
 length(Filter(is.null, files_list))
 index_NULL_files<-names(Filter(is.null, files_list))
 
-i=index_NULL_files[[1]]
-files_list[[i]]
 for (i in index_NULL_files){
   tryCatch(expr={
     #read in files and set crs
@@ -91,14 +89,25 @@ for (i in seq(files_list)){
     }else{}
   }
   empty_geometry<-empty_geometry[!is.na(empty_geometry)] #drop NAs
+  #length(layer$geometry)==length(layer$measuredHeight)
   if(length(empty_geometry)!=0){ #if there are empty geometries
   layer<-layer[-c(empty_geometry),] #drop rows with wrong geometry type
+  #length(layer$geometry)==length(layer$measuredHeight)
     }
   layer <- st_polygonize(layer)
   if(any(st_is_empty(layer))){ #check if there are still empty geometries
     layer<-layer[!st_is_empty(layer),] #remove empty geometries
   }
   sp_layer <- as(st_geometry(layer), "Spatial")
+  if(length(sp_layer)!=length(layer)){ #check for length mismatch
+    if(any(is.na(getSpPPolygonsIDSlots(sp_layer)))){ #if any ID is NA
+      ids<-which(is.na(getSpPPolygonsIDSlots(sp_layer)))
+      sp_layer<-sp_layer[-ids] #remove polygons without ID
+    }else{}
+  }else{}
+  if(length(sp_layer)!=length(layer$measuredHeight)){ #QAQC if lengths match
+    print("length unequal")
+  }else{}
   #preserve height
   shp_height[[i]]<-layer$measuredHeight
   crs(sp_layer) <- NA #delete original crs
@@ -107,69 +116,103 @@ for (i in seq(files_list)){
  }, error=function(e){message("WHops! Caught an error")})
 }
 
- index_ERROR_files<-which(sapply(shp, is.null))
+index_ERROR_files<-which(sapply(shp, is.null))
+Error_list<-files_list[c(index_ERROR_files)]
 
 #Error handling loop
-
-for (i in index_ERROR_files){
+for (i in names(index_ERROR_files)){
   tryCatch(expr={
     print(i) #see where error occurs
-    layer <- files_list[[i]]
+    layer <- Error_list[[i]]
     layer <- st_as_sf(layer)
-
-empty_geometry<-rep(NA, length=nrow(layer))
+empty_geometry<-rep(NA, length=nrow(layer)) #output to get vector of all rows with empty geometry
 for(x in 1:nrow(layer)){ #check every row in layer
-  if(class(layer[x,]$geometry)[1]=="sfc_POLYHEDRALSURFACE"){ #check if geometry type is correct
+  if(class(layer[x,]$geometry)[1]!="sfc_MULTILINESTRING"){ #check if geometry type is correct
     empty_geometry[x]<-x
   }else{}
   if(is.na(layer[x,]$measuredHeight)){ #check if height is NA
     empty_geometry[x]<-x 
   }else{}
-}
+} 
+#QAQC output
+print(paste0("there are ", sum(!is.na(empty_geometry)), " rows that were deleted"))
 empty_geometry<-empty_geometry[!is.na(empty_geometry)] #drop NAs
 if(length(empty_geometry)!=0){ #if there are empty geometries
   layer<-layer[-c(empty_geometry),] #drop rows with wrong geometry type
+}else{}#do nothing
+
+if(dim(layer)[1]!=0){ #check if layer has length zero
+  layer <- st_polygonize(layer) #if not, polygonize
 }
-layer <- st_polygonize(layer)
-if(any(st_is_empty(layer))){ #check if there are still empty geometries
-  layer<-layer[!st_is_empty(layer),] #remove empty geometries
+  else{ 
+    print("layer is empty") #print message
+    Error_list[i]<-NULL #if layer is zero, delete
+    Files_list[i]<-NULL #delete also from files fist
+    next
+    } 
+  if(any(st_is_empty(layer))){ #check if there are still empty geometries
+    layer<-layer[!st_is_empty(layer),] #remove empty geometries
+  }
+    else{} #if no empty geometries, do nothing
+  }, error=function(e){message("WHops! Caught a fatal error")})
 }
 
+#Error handling for conversion to sp polygon
+for(i in names(Error_list)){
+  tryCatch(expr={
+    print(i)
+    layer <- Error_list[[i]]
 #disaggregate all polygons into list 
-layer_list<-data_list <- split(layer, seq(nrow(layer)))  
-layer_shp_list<-vector(mode='list', length=length(layer_list)) #new output list
+layer_list<- split(layer, seq(nrow(layer)))  
+error_shp_list<-vector(mode='list', length=length(layer_list)) #new output list
 #loop through list and convert every single polygon
 for(z in 1:length(layer_list)){
   tryCatch(expr={
-  layer_shp_list[[z]]<-as(st_geometry(layer_list[[z]]), "Spatial")
-  if(validObject(layer_shp_list[[z]])==FALSE){
-    layer_shp_list[[z]]<-NA
+    #print(paste0("row ", z))
+    layer_list[[z]]<-st_polygonize(layer_list[[z]])
+  error_shp_list[[z]]<-as(st_geometry(layer_list[[z]]), "Spatial")
+  if(validObject(error_shp_list[[z]])==FALSE){
+    error_shp_list[[z]]<-NA
   }else{}
   }, error=function(e){message("WHops! Caught an error in conversion")})
 }
 
 #remove empty polygons 
-layer_shp_list[sapply(layer_shp_list, is.null)] <- NULL #remove NULL entries
+null_index<-which(sapply(error_shp_list, is.null)) 
+measuredHeight<-layer$measuredHeight #create vector for height
+if(length(null_index)!=0){ #if there are heights to be remove
+measuredHeight<-measuredHeight[-null_index] #remove null entries
+}else{} #do nothing
+error_shp_list[sapply(error_shp_list, is.null)] <- NULL #remove NULL entries
+
 #Assign new Polygon IDs
-orig_ID <- sapply(layer_shp_list, function(x)
+orig_ID <- sapply(error_shp_list, function(x)
   slot(slot(x, "polygons")[[1]], "ID"))
 
-new_IDs=paste0(orig_ID, 1:length(layer_shp_list))
-for (y in 1:length(layer_shp_list)){
-  slot(slot(layer_shp_list[[y]], "polygons")[[1]], "ID") = new_IDs[y]
+new_IDs=paste0(orig_ID, 1:length(error_shp_list))
+for (y in 1:length(error_shp_list)){
+  slot(slot(error_shp_list[[y]], "polygons")[[1]], "ID") = new_IDs[y]
 }
 
 #Making new SpatialPolygon from list of polygons
-new_layer <- SpatialPolygons(lapply(layer_shp_list,
+new_layer <- SpatialPolygons(lapply(error_shp_list,
                                function(x) slot(x, "polygons")[[1]]))
 #preserve height
-shp_height[[i]]<-layer$measuredHeight
+shp_height[[i]]<-measuredHeight
+#check if height values match polygons
+if(length(new_layer)!=length(measuredHeight)){
+  print("length unequal")
+  #what to do then
+}else{}
 crs(new_layer) <- NA #delete original crs
 crs(new_layer) <- "+proj=utm +zone=32 +datum=WGS84 +units=m +no_defs" #set new crs
-shp[[i]] <- new_layer #write into new list
-  }, error=function(e){message("WHops! Caught a fatal error")})
+Error_list[[i]] <- new_layer #write into new list
+}, error=function(e){message("WHops! Caught a fatal error")})
 }
 
+#add Error_list entries back to shp
+replacements<-intersect(names(Error_list), names(which(sapply(shp, is.null))))
+shp<-modifyList(shp, Error_list[replacements])
 
 length(which(sapply(shp, is.null))) #check how many list entries are NULL
 shp[sapply(shp, is.null)] <- NULL #remove NULL entries
@@ -182,16 +225,13 @@ shp_height[sapply(shp_height, is.null)] <- NULL #remove NULL entries
 #some heights are a list -> coerce to vector
 shp_height_error<-which(sapply(shp_height, is.list))
 
-for(i in shp_height_error){
-  list<-shp_height[[i]]
-  nolist<-unlist(list)
-  shp_height[[i]]<-nolist
-}
+shp[shp_height_error]<-NULL
+shp_height[shp_height_error]<-NULL
 
 #create new list
 spdf<- vector(mode='list', length=length(shp)) #create empty list
 names(spdf)<-names(shp)
-i=336
+
 #tranform to SpatialPolygonsDataFrame
 for(i in 1:length(shp)){
   tryCatch(expr={
@@ -199,17 +239,26 @@ for(i in 1:length(shp)){
     if(any(is.na(names(shp[[i]])))){ #check if any IDs are NA
       na_poly<-which(is.na(names(shp[[i]]))) #which ID is NA
       shp[[i]]@polygons[[na_poly]]<-NULL #remove polygon with NA as ID
+      shp_height[[i]]<-shp_height[[i]][-na_poly]
     }else{}
   spdf[[i]]<-as(shp[[i]], "SpatialPolygonsDataFrame")
+  if(length(spdf[[i]])==length(shp_height[[i]])){ #length is the same
   spdf[[i]]$height<-shp_height[[i]]
+  }else{
+    print(paste0(i, " no height"))
+  }
   }, error=function(e){message("WHops! Caught a fatal error")})
 }
 
 length(which(sapply(spdf, is.null))) #check how many list entries are NULL
 #none
+length(which(sapply(spdf, function(x) ncol(x@data))==1))
 
 #rowbind list of spatialPolygonsdatafarme
 obstacles_df <- do.call("rbind", spdf)
+
+plot(obstacles_df)
+
 ncols<-sapply(spdf, ncol)
 any(ncols!=2)
 which(ncols!=2)
