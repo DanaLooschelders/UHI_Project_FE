@@ -332,4 +332,5 @@ svf_test<-SVF(
   parallel = no_cores
 )
 
-
+#saga gis
+#normalisiertes digitales Oberflächenmodell 50
