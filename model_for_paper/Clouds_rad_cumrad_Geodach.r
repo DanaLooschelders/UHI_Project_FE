@@ -16,25 +16,26 @@ library(readxl)
 #format timestamp 1: 2019-08-14 19:10:00
 #geo_2019$date<-strptime(geo_2019$date, format="%Y-%m-%d %H:%M:%S", tz="Europe/London") #tz is russiun solution =eternal wintertime
 #geo_2019$date<-as.POSIXct(geo_2019$date, tz="Europe/London")
-
+setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Praediktoren/Meteorologie/GeoDach")
 #read in 2020 data
-geo_2020<-read.table("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_roh/Meteo_Daten/Meteo_GeoDach/GeoDach2020_withcloudcover.csv",
+geo_2020<-read.table("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Praediktoren/Meteorologie/GeoDach/GeoDach2020_withcloudcover.csv",
                      sep=";", dec=",", skip=20000, header=F, nrow=20000,fill = T, na.strings = c("-"),
-                     col.names = read.table("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_roh/Meteo_Daten/Meteo_GeoDach/GeoDach2020_withcloudcover.csv",
+                     col.names = read.table("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Praediktoren/Meteorologie/GeoDach/GeoDach2020_withcloudcover.csv",
                                             sep=";", dec=",", skip=2, header=F, nrow=1))
 
 #subset to parameters needed
-geo_2020<-geo_2020[,c(1,16,23)]
+geo_2020<-geo_2020[,c(1,16,21,23)]
 #change colnames
 colnames(geo_2020)[1] <- "date"
 
 #format timestamp
 geo_2020$date<-strptime(geo_2020$date, format="%d.%m.%Y %H:%M", tz="Europe/London") #tz is russiun solution =eternal wintertime
 geo_2020$date<-as.POSIXct(geo_2020$date, tz="Europe/London")
-
+meteo_geo<-geo_2020
 #put together
-meteo_geo<-rbind(geo_2019, geo_2020)
-
+#meteo_geo<-rbind(geo_2019, geo_2020)
+#calculate hourly precipitation
+cum_prec_hour<-timeAverage(meteo_geo[,c(1,3)], statistic="sum", avg.time="hour")
 str(meteo_geo)
 #meteo_geo$tcc<-as.factor(meteo_geo$tcc)
 
@@ -42,6 +43,7 @@ str(meteo_geo)
 meteo_geo=timeAverage(meteo_geo,avg.time = "hour")
 meteo_geo$tcc<-round(meteo_geo$tcc, digits = 0)
 meteo_geo$date<-as.POSIXct(meteo_geo$date, tz="Europe/London")
+meteo_geo$Precipitation<-cum_prec_hour$Precipitation
 #convert to summertime to match Steinf and Logger 
 meteo_geo <- with_tz(time = meteo_geo, tzone = "CET")
 #subset to timespans needed
@@ -66,9 +68,10 @@ Summer2020<-meteo_geo[meteo_geo$date>="2020-07-03 00:00:00"&
 meteo_geo<-rbind(Spring2020,Summer2020) #exclude Summer2019,Autumn2019,
 #remove temporaray dat
 rm(Spring2020,Summer2020) #exclude Summer2019,Autumn2019,
+
 ####calculate cumulative radiation per day####
 #read in sunrise/sunset data
-setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Paper/Prädiktoren/Time of day")
+setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Praediktoren/Time_of_day/")
 sunrise<-read.table(file = "Sunrise_dates.csv", sep=";", dec=".", header=T)      
 sunrise$day<-seq.Date(from=as.Date("2020-01-01"), to=as.Date("2020-12-31"), by="day")
 sunrise<-sunrise[,c(3,7)]
@@ -83,5 +86,20 @@ meteo_geo<-meteo_geo %>%
   group_by(Sunrise) %>% #group by sunrise --> spans from one sunrise to next
   mutate(cum_radiation = cumsum(Shortwave.Radiation)) #calculate cumsum per day
 #meteo_geo<-meteo_geo[meteo_geo$date>=starttime&meteo_geo$date<=endtime,]
-setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Paper/Prädiktoren/Meteorologie/GeoDach/")
+
+#calculate cumulative precipitation
+meteo_geo$hour3<-as.factor(round_date(meteo_geo$date, unit = "3 hours"))
+meteo_geo$day<-as.factor(round_date(meteo_geo$date, unit="day"))
+
+#for 3 hours
+meteo_geo<-meteo_geo %>%
+  group_by(hour3) %>% #group for every 3 hours
+  mutate(cum_prec_hours3 = cumsum(Precipitation)) #calculate cumsum per day
+#for 1 day
+meteo_geo<-meteo_geo %>% 
+  group_by(Sunrise) %>% #group for one day
+  mutate(cum_prec_day = cumsum(Precipitation)) #calculate cumsum per day
+
+meteo_geo<-meteo_geo[,-c(5,8)]
+setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Praediktoren/Meteorologie/GeoDach/")
 write.csv(meteo_geo, "meteo_geo.csv", row.names = F)
