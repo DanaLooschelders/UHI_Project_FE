@@ -11,11 +11,11 @@ library(lubridate)
 #GeoDach: cloud cover, SWincoming, cum SW incoming
 
 ####Geodach####
-setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Paper/Prädiktoren/Meteorologie/GeoDach/")
+setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Praediktoren/Meteorologie/GeoDach/")
 meteo_geo<-read.table(file="meteo_geo.csv", dec=".", sep=",", header=T)
 ####Steinfurther Str####
 #Steinf: Temp, rH,  stability (calculated from temp) #ACHTUNG ewige Sommerzeit
-setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Paper/Prädiktoren/Meteorologie/Steinfurter/preprocessed/")
+setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Praediktoren/Meteorologie/Steinfurter/preprocessed/")
 #meteo_steinf_2019<-read.table(file = "Steinfurter_meteo_2019.csv", sep=",", dec=".",
 #                        header=T)
 meteo_steinf<-read.table(file = "Steinfurter_meteo_2020.csv", sep=";", dec=",",
