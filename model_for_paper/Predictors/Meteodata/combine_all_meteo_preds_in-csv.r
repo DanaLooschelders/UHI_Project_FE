@@ -65,13 +65,14 @@ rm(Spring2020,Summer2020)
 
 #meteo_steinf<-meteo_steinf[meteo_steinf$date>=starttime&meteo_steinf$date<=endtime,]
 #Steinf: Wind 
-wind_steinf<-read.csv(file="C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Paper/Prädiktoren/Meteorologie/Steinfurter/preprocessed/Steinfurter_wind_2020.csv")
-wind_steinf_1<-read.csv(file="C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Paper/Prädiktoren/Meteorologie/Steinfurter/preprocessed/Steinfurter_wind_spring2020.csv")
+wind_steinf<-read.csv(file="C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Praediktoren/Meteorologie/Steinfurter/preprocessed/Steinfurter_wind_2020.csv")
+wind_steinf_1<-read.csv(file="C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Praediktoren/Meteorologie/Steinfurter/preprocessed/Steinfurter_wind_spring2020.csv")
 wind_steinf<-rbind(wind_steinf_1, wind_steinf)
 wind_steinf$date<-strptime(wind_steinf$timestamp_start, format="%Y-%m-%d %H:%M:%S")
 #subset to parameters needed
 wind_steinf<-wind_steinf[,c(4,8,14)]
 wind_steinf$date<-as.POSIXct(wind_steinf$date)
+names(wind_steinf)[1:2]<-c("ws", "wd") #rename
 #aggregate by hour
 wind_steinf=timeAverage(wind_steinf,avg.time = "hour")
 #subset to timespan needed
@@ -97,7 +98,8 @@ meteo <- data.frame("datetime"=meteo_steinf$date,
                     "meteo_cloudcover"=meteo_geo$tcc,
                     "meteo_radiation"=meteo_geo$Shortwave.Radiation,
                     "meteo_cum_radiation"=meteo_geo$cum_radiation,
-                    "meteo_windspeed"=wind_steinf$mean_windspeed)
+                    "meteo_windspeed"=wind_steinf$ws,
+                    "meteo_winddirection"=wind_steinf$wd)
 meteo$meteo_stability<-as.factor(meteo$meteo_stability)
 
 #write in file
