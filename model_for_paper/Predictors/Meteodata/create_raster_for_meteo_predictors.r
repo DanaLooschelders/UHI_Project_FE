@@ -16,12 +16,7 @@ setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Prädiktoren/Meteorologie"
 #setwd("/Users/ameliewendiggensen/sciebo/UHI_Projekt_Fernerkundung/Prädiktoren/Meteorologie")
 meteo<-read.csv("meteo_all.csv")
 str(meteo)
-#change stability to numeric
-meteo$meteo_stability[meteo$meteo_stability=="unstable"]<-0
-meteo$meteo_stability[meteo$meteo_stability=="stable"]<-1
-str(meteo$meteo_stability) #check
-meteo$meteo_stability<-as.numeric(meteo$meteo_stability) #convert to numeric
-str(meteo$meteo_stability) #check
+
 
 #get shape of polygon
 gadm <- getData('GADM', country='DEU', level=2)

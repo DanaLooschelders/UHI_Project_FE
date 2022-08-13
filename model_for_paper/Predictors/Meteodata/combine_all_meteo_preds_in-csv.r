@@ -98,10 +98,19 @@ meteo <- data.frame("datetime"=meteo_steinf$date,
                     "meteo_cloudcover"=meteo_geo$tcc,
                     "meteo_radiation"=meteo_geo$Shortwave.Radiation,
                     "meteo_cum_radiation"=meteo_geo$cum_radiation,
+                    "meteo_precip"=meteo_geo$Precipitation,
+                    "meteo_precip3hour"=meteo_geo$cum_prec_hours3,
+                    "meteo_precip1day"=meteo_geo$cum_prec_day,
                     "meteo_windspeed"=wind_steinf$ws,
                     "meteo_winddirection"=wind_steinf$wd)
-meteo$meteo_stability<-as.factor(meteo$meteo_stability)
+
+#change stability to numeric
+meteo$meteo_stability[meteo$meteo_stability=="unstable"]<-0
+meteo$meteo_stability[meteo$meteo_stability=="stable"]<-1
+str(meteo$meteo_stability) #check
+meteo$meteo_stability<-as.numeric(meteo$meteo_stability) #convert to numeric
+str(meteo$meteo_stability) #check
 
 #write in file
-setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Paper/Prädiktoren/Meteorologie/")
+setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Praediktoren/Meteorologie/")
 write.csv(meteo, file = "meteo_all.csv", row.names = F )
