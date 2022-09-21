@@ -2,6 +2,7 @@ library(mapview)
 library(raster)
 library(sp)
 library(rgdal)
+library(beepr)
 
 setwd("C:/Users/Dana/sciebo/ndom")
 ndom<-raster("ndom_crop_muenster.tif")
@@ -60,17 +61,40 @@ writeRaster(dlm_resampled, "dlm_resampled") #write to file
 dlm_resampled<-raster("dlm_resampled.grd") #load again
 extent(dlm_resampled)==extent(svf) #compare extents
 #define function to set all pixels with height > 4 m and building object code to NA
-myFun2 <- function(x, y) {ifelse( x == 9999 & any(x==builds),
+myFun2 <- function(x, y) {ifelse( x == 9999 && any(y==builds),
                                     x <- NA, x <- x)}
+#create tiny test subset of raster to test function
+plot(svf_under4)
+extent(svf_under4)
+test_extent<-extent(c(397000, 398500, 5755000, 5755500))
+svf_under4_test<-crop(svf_under4, test_extent)
+plot(svf_under4_test)
+mapview(svf_under4_test)
+dlm_resampled_test<-crop(dlm_resampled, test_extent)
+plot(dlm_resampled_test)
+mapview(dlm_resampled_test)
+#--> works 
 #execute function and create new output raster
 svf_build <- overlay(stack(svf_under4, dlm_resampled), fun = Vectorize(myFun2))
-writeRaster(svf_build, "svf_build")
 plot(svf_build)
-#make a sound when finished
-install.packages("beepr")
-library(beepr)
-beep()
+mapview(svf_build)
+#how many NAs -> should be more in svf_build as NAs were added
+cellStats(svf_build, stat="countNA")>cellStats(svf_under4, stat="countNA")
+#write to file
+writeRaster(svf_build, "svf_build", overwrite=T)
 
-writeRaster(svf_build, "svf_build")
+svf_build<-raster("svf_build.grd")
 
-#svf_trees<-overlay(svf, ndom_1, )
+#define function to set all pixels with height > 4 m and forest object code to NA
+forest<-c(43002, 43003)
+myFun3 <- function(x, y) {ifelse( x == 9999 && any(y==forest),
+                                  x <- 0.26, x <- x)}
+
+svf_build_trees<-overlay(svf_build, dlm_resampled, fun=Vectorize(myFun3))
+beep(sound=3)
+plot(svf_build_trees)
+mapview(svf_build_trees)
+
+writeRaster(svf_build_trees, "svf_build_trees")
+
+svf_build_trees<-("svf_build_trees.grd")
