@@ -148,6 +148,7 @@ str(meteo)
 colnames(meteo)[1]<-"date_time"
 meteo$date_time<-as.POSIXct(meteo$date_time)
 
+remove(total_stack)
 #load dynamic predictors 
 for(i in 1:222){
   if(!exists("total_stack")){
@@ -180,6 +181,7 @@ for(i in 1:222){
     #create column with time span value
     extr$time<-all_temp$datetime[as.numeric(i)]
     extr$date_time <- extr$time
+    extr$date_time <- as.POSIXct(extr$time)
     extr_sun <-  left_join(extr, times_06[, c("hours_sss", "hours_ssr","date_time")], by = "date_time")
     #add meteodata
     extr_sun_meteo<-left_join(extr_sun, meteo, by= "date_time" )
@@ -189,47 +191,60 @@ for(i in 1:222){
     total_stack<-rbind(total_stack, total_stack_temp)
   }
 } 
-
+beep()
 setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Praediktoren/")
-write.csv(total_stack, file ="total_stack_06_new.csv")
+write.csv(total_stack, file ="total_stack_06_20221012.csv")
 
 remove(total_stack)
 
 #same for july
 for(i in 223:length((spatial_list))){  
   if(!exists("total_stack")){
+    #index logger list to get one element
     logger_dat<-spatial_list[[i]]
-    meteo<-stack(paste("E:/meteo_raster/", "Meteo__", i, ".grd", sep=""))
-    pred_stack_all <- stack(pred_stack_07, meteo)
-    extr <- raster::extract(pred_stack_all,logger_dat,df=TRUE) 
+    #extract predictor values for training data
+    extr <- raster::extract(pred_stack_07,logger_dat,df=TRUE) 
+    #create ID by row names
     logger_dat$ID<-row.names(logger_dat)
+    #merge
     extr <- merge(extr,logger_dat@data,by.x="ID")
+    #create column with time span value
     extr$time<-all_temp$datetime[as.numeric(i)]
-    extr$date_time <- extr$time
+    extr$date_time <- as.POSIXct(extr$time)
     extr_sun <-  left_join(extr, times_07[, c("hours_sss", "hours_ssr","date_time")], by = "date_time")
-    total_stack <-extr_sun
+    #add meteodata
+    extr_sun_meteo<-left_join(extr_sun, meteo, by= "date_time" )
+    #rename
+    total_stack<-extr_sun_meteo
   }
   else{
+    #index logger list to get one element
     logger_dat<-spatial_list[[i]]
-    meteo<-stack(paste("E:/meteo_raster/", "Meteo__", i, ".grd", sep=""))
-    pred_stack_all<- stack(pred_stack_07, meteo)
-    extr <- raster::extract(pred_stack_all,logger_dat,df=T)  
+    #extract predictor values for training gdata
+    extr <- raster::extract(pred_stack_07,logger_dat,df=T)  
+    #create ID by row names
     logger_dat$ID<-row.names(logger_dat)
+    #merge
     extr <- merge(extr,logger_dat@data,by.x="ID")
+    #create column with time span value
     extr$time<-all_temp$datetime[as.numeric(i)]
     extr$date_time <- extr$time
+    extr$date_time <- as.POSIXct(extr$time)
     extr_sun <-  left_join(extr, times_07[, c("hours_sss", "hours_ssr","date_time")], by = "date_time")
-    total_stack_temp <-extr_sun
+    #add meteodata
+    extr_sun_meteo<-left_join(extr_sun, meteo, by= "date_time" )
+    #rename
+    total_stack_temp<-extr_sun_meteo
     
     total_stack<-rbind(total_stack, total_stack_temp)
   }
 }  
-
+beep()
 setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Praediktoren/")
-write.csv(total_stack, file ="total_stack_07_new.csv")
+write.csv(total_stack, file ="total_stack_07_20221012.csv")
 
-total_stack_06 <- read_csv("total_stack_06_new.csv")
-total_stack_07 <- read_csv("total_stack_07_new.csv") 
+total_stack_06 <- read_csv("total_stack_06_20221012.csv")
+total_stack_07 <- read_csv("total_stack_07_20221012.csv") 
 
 names(total_stack_07)[names(total_stack_07) == 'albedo_07'] <- 'albedo'
 names(total_stack_07)[names(total_stack_07) == 'ndvi_07'] <- 'ndvi'
@@ -238,15 +253,15 @@ names(total_stack_06)[names(total_stack_06) == 'albedo_06'] <- 'albedo'
 names(total_stack_06)[names(total_stack_06) == 'ndvi_06'] <- 'ndvi'
   
 total <- rbind(total_stack_06, total_stack_07)
-total <- total[,2:28]
+total <- total[,2:35] #remove double first column
 
-write.csv(total, file ="total_stack_new.csv")
+write.csv(total, file ="total_stack_20221012.csv")
 
-total_stack_new<-read.csv("total_stack_new.csv")  
+total_stack_new<-read.csv("total_stack_20221012.csv")  
 
 #cheat for stability
 for(i in 1:length(total_stack_new$meteo_stability)){
   total_stack_new$meteo_stability[i]<-meteo$meteo_stability[meteo$date_time==total_stack_new$date_time[i]]
 }
 
-write.csv(total_stack_new, file ="total_stack_new.csv")
+write.csv(total_stack_new, file ="total_stack_20221012.csv")
