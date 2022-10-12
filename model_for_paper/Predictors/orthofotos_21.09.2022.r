@@ -28,7 +28,4 @@ for(i in files){
 #mosaic files
 names(files_list) <- NULL
 
-mos <- do.call(merge, files_list[1:10])
-
-
-
+mos <- do.call(merge, files_list[1:2])

@@ -26,7 +26,7 @@ files_list$fun <- "mean"
 mos <- do.call(mosaic, files_list) #that does not work, I have no idea why
 #ugly, but it works
 test<-mosaic(files_list[[1]], files_list[[2]], files_list[[3]], files_list[[4]],
-            files_list[[5]], files_list[[6]], files_list[[7]],  fun="mean")
+            files_list[[5]], files_list[[6]], files_list[[7]], files_list[[8]],  fun="mean")
 spplot(test) #plot
 
 mapview(test)
@@ -36,3 +36,12 @@ mapview(test)
 NDVI<-(test[[4]]-test[[3]])/(test[[4]]+test[[3]])
 
 mapview(NDVI)
+
+#use 0.7 as threshold for NDVI (check source)
+
+#resample to a higher resolution (of 0.5 m)
+res(NDVI)
+NDVI_05<-disaggregate(NDVI, fact=6)
+#check
+res(NDVI_05)
+
