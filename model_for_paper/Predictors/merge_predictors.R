@@ -196,7 +196,7 @@ setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Praediktoren/")
 write.csv(total_stack, file ="total_stack_06_20221012.csv")
 
 remove(total_stack)
-
+remove(total_stack_temp)
 #same for july
 for(i in 223:length((spatial_list))){  
   if(!exists("total_stack")){
@@ -242,9 +242,9 @@ for(i in 223:length((spatial_list))){
 beep()
 setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Praediktoren/")
 write.csv(total_stack, file ="total_stack_07_20221012.csv")
-
-total_stack_06 <- read_csv("total_stack_06_20221012.csv")
-total_stack_07 <- read_csv("total_stack_07_20221012.csv") 
+remove(total_stack, total_stack_temp)
+total_stack_06 <- read.csv("total_stack_06_20221012.csv")
+total_stack_07 <- read.csv("total_stack_07_20221012.csv") 
 
 names(total_stack_07)[names(total_stack_07) == 'albedo_07'] <- 'albedo'
 names(total_stack_07)[names(total_stack_07) == 'ndvi_07'] <- 'ndvi'
@@ -263,5 +263,14 @@ total_stack_new<-read.csv("total_stack_20221012.csv")
 for(i in 1:length(total_stack_new$meteo_stability)){
   total_stack_new$meteo_stability[i]<-meteo$meteo_stability[meteo$date_time==total_stack_new$date_time[i]]
 }
+
+#set height of non-existing buildings to 0 
+total_stack_new$building_height[is.na(total_stack_new$building_height)]<-0
+total_stack_new$building_height_sd_3x3[is.na(total_stack_new$building_height_sd_3x3)]<-0
+total_stack_new$building_height_sd_5x5[is.na(total_stack_new$building_height_sd_5x5)]<-0
+
+#set to 0
+total_stack_new$hours_ssr[is.na(total_stack_new$hours_ssr)]<-0
+total_stack_new$hours_sss[is.na(total_stack_new$hours_sss)]<-0
 
 write.csv(total_stack_new, file ="total_stack_20221012.csv")

@@ -9,16 +9,6 @@ registerDoParallel(cl)
 
 setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Prädiktoren")
 #load total stack
-total_stack<-read.csv("total_stack_new.csv")
-table(total_stack$meteo_stability)
-#set height of non-existing buildings to 0 
-total_stack$building_height[is.na(total_stack$building_height)]<-0
-total_stack$building_height_sd_3x3[is.na(total_stack$building_height_sd_3x3)]<-0
-total_stack$building_height_sd_5x5[is.na(total_stack$building_height_sd_5x5)]<-0
-
-#set to 0
-total_stack$hours_ssr[is.na(total_stack$hours_ssr)]<-0
-total_stack$hours_sss[is.na(total_stack$hours_sss)]<-0
 
 #check how many rows will be removed
 length(total_stack$Temp[is.na(total_stack$Temp)])
