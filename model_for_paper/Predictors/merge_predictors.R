@@ -273,4 +273,4 @@ total_stack_new$building_height_sd_5x5[is.na(total_stack_new$building_height_sd_
 total_stack_new$hours_ssr[is.na(total_stack_new$hours_ssr)]<-0
 total_stack_new$hours_sss[is.na(total_stack_new$hours_sss)]<-0
 
-write.csv(total_stack_new, file ="total_stack_20221012.csv")
+write.csv(total_stack_new, file ="total_stack_20221012.csv", row.names = F)
