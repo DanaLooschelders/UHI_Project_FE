@@ -21,44 +21,103 @@ cl <- makeCluster(no_cores)
 registerDoParallel(cl)
 
 #load model
-setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Modell")
-load(file = "result_20220713.RData")
+setwd("C:/Users/Dana/sciebo/ndom/klaus/")
+model<-readRDS(file = "ffs_Model_2022-10-13.RDS")
 
 #RMSE
+png(file="RMSE_klaus.png", width = 300, height=200, units="mm", res = 200)
 plot(model)
+dev.off()
 
 #Variable importance
 varImp(model)
+png(file="VarImp_klaus.png", width = 300, height=200, units="mm", res = 200)
 #as plot
 plot(varImp(model))
+dev.off()
 
 #load meteo data
-setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Prädiktoren/Meteorologie")
+setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Praediktoren/Meteorologie")
 #setwd("/Users/ameliewendiggensen/sciebo/UHI_Projekt_Fernerkundung/Prädiktoren/Meteorologie")
-meteo<-read.csv("meteo_for_raster.csv")
+meteo<-read.csv("meteo_all.csv")
 str(meteo)
 #predict
-sample<-sample(1:nrow(meteo),10)
-sample<-c(163, 317, 697, 438, 431, 263, 329, 609,  36,  17)
-#random sample is 163 317 697 438 431 263 329 609  36  17
+set.seed(6)
+sample<-sample(1:nrow(meteo),4)
+#random sample is 283 387 149 392
 
 #load static pred stack
-setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Prädiktoren")
-pred_stack_06<-stack("all_static_pred_06.grd")
+setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Praediktoren")
+pred_stack_06<-stack("pred_stack_06_20221012.grd")
 names(pred_stack_06)[1:2]<-c("albedo","ndvi") #rename to match model
-pred_stack_07<-stack("all_static_pred_07.grd")
+pred_stack_07<-stack("pred_stack_07_20221012.grd")
 names(pred_stack_07)[1:2]<-c("albedo","ndvi") #rename to match model
 
 
-#load dynamic meteo preds (5 randomly sampled from all meteo files)
-setwd("E:/meteo_raster/")
-meteo_163<-stack("Meteo__163.grd")
-meteo_609<-stack("Meteo__609.grd")
-meteo_36<-stack("Meteo__36.grd")
+#write meteo data into raster stack
+setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Praediktoren/Copernicus_grün_blau_grau/Imperviousness")
+#load ref raster
+ref_raster<-raster("copernicus_imperviousness_crop_MS_10m.tif")
+#transform polygon into Raster
+r <- raster(ncol=ncol(ref_raster), nrow=nrow(ref_raster), 
+            crs = "+proj=longlat +datum=WGS84 +no_defs")
+extent(r) <- extent(ref_raster)
+raster_Steinf<-rasterize(gadm, r)
+#set wd
+setwd("C:/Users/Dana/sciebo/ndom/klaus/Prediction/Stacks_for_prediction/")
+#run loop for all samples
+for(i in sample){
+  #Temperature
+  raster_Steinf_temp<-raster_Steinf
+  values(raster_Steinf_temp)<-meteo$meteo_Temp[i]
+  #relative humidity
+  raster_Steinf_RH<-raster_Steinf
+  values(raster_Steinf_RH)<-meteo$meteo_rH[i]
+  #stability
+  raster_Steinf_stability<-raster_Steinf
+  values(raster_Steinf_stability)<-meteo$meteo_stability[i]
+  #cloudcover
+  raster_Steinf_cloudcover<-raster_Steinf
+  values(raster_Steinf_cloudcover)<-meteo$meteo_cloudcover[i]
+  #radiation
+  raster_Steinf_radiation<-raster_Steinf
+  values(raster_Steinf_radiation)<-meteo$meteo_radiation[i]
+  #cum_radiation
+  raster_Steinf_cum_radiation<-raster_Steinf
+  values(raster_Steinf_cum_radiation)<-meteo$meteo_cum_radiation[i]
+  #precipitation current
+  raster_Steinf_precip<-raster_Steinf
+  values(raster_Steinf_precip)<-meteo$meteo_precip[i]
+  #precipitation last 3h
+  raster_Steinf_precip3h<-raster_Steinf
+  values(raster_Steinf_precip3h)<-meteo$meteo_precip3hour[i]
+  #precipitation last day
+  raster_Steinf_precip1day<-raster_Steinf
+  values(raster_Steinf_precip1day)<-meteo$meteo_precip1day[i]
+  #wind speed
+  raster_Steinf_windspeed<-raster_Steinf
+  values(raster_Steinf_windspeed)<-meteo$meteo_windspeed[i]
+  #wind direction
+  raster_Steinf_winddir<-raster_Steinf
+  values(raster_Steinf_winddir)<-meteo$meteo_winddirection[i]
+  #stack values
+  meteo_stack<-stack(raster_Steinf_RH, raster_Steinf_temp, raster_Steinf_stability,
+                     raster_Steinf_cloudcover, raster_Steinf_radiation, 
+                     raster_Steinf_cum_radiation, raster_Steinf_precip, raster_Steinf_precip3h,
+                     raster_Steinf_precip1day,raster_Steinf_windspeed, raster_Steinf_winddir)
+  #set layer names
+  names(meteo_stack)<-c("meteo_RH", "meteo_Temp", "meteo_stability", 
+                        "meteo_cloudcover", "meteo_radiation", "meteo_cum_radiation",
+                        "meteo_precip", "meteo_precip3hour", "meteo_precip1day",
+                        "meteo_windspeed","meteo_winddirection")
+  #write raster into file
+  writeRaster(meteo_stack, filename = paste("Meteo_", i,
+                                            sep="_"), overwrite=T)
+}
 
 #load time_of_day data and write as raster
-times_06 <- read.csv("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Prädiktoren/Time_of_day/times_06.csv")
-times_07 <- read.csv("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Prädiktoren/Time_of_day/times_07.csv")
+times_06 <- read.csv("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Praediktoren/Time_of_day/times_06.csv")
+times_07 <- read.csv("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Praediktoren/Time_of_day/times_07.csv")
 #combine
 times<-rbind(times_06, times_07)
 #change NA values to 0
@@ -70,15 +129,9 @@ gadm <- getData('GADM', country='DEU', level=2)
 gadm <- gadm[gadm$NAME_2=="Münster",]
 gadm_sf <- as(gadm,"sf")
 mapview(gadm_sf)
-#load refrence raster
-setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Prädiktoren/Copernicus_grün_blau_grau/Imperviousness")
-ref_raster<-raster("copernicus_imperviousness_crop_MS_10m.tif")
-#transform polygon into Raster
-r <- raster(ncol=ncol(ref_raster), nrow=nrow(ref_raster), crs = "+proj=longlat +datum=WGS84 +no_defs")
-extent(r) <- extent(ref_raster)
-raster_Steinf<-rasterize(gadm, r)
+
 #write to raster (only samples)
-setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Prediction/sunshinehours_for_prediction")
+setwd("C:/Users/Dana/sciebo/ndom/klaus/Prediction/Stacks_for_prediction/")
 
 for(i in sample){
   #hours_sss
@@ -97,101 +150,90 @@ for(i in sample){
 }
 
 #load time raster
-setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Prediction/sunshinehours_for_prediction")
-time_163<-stack("time__163.grd")
-time_609<-stack("time__609.grd")
-time_36<-stack("time__36.grd")
+setwd("C:/Users/Dana/sciebo/ndom/klaus/Prediction/Stacks_for_prediction/")
+time_149<-stack("time__149.grd")
+time_283<-stack("time__283.grd")
+time_387<-stack("time__387.grd")
 
-#load lidar data
-#stack with lidar data 
-setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Prädiktoren/lidar")
-lidar <- "C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Prädiktoren/lidar"
-list.files(lidar)
-lidar <- stack("Lidar_building_height.grd",
-               "Lidar_building_sd_3x3.grd",
-               "Lidar_building_sd_5x5.grd")
-
-names(lidar) <- c("building_height", "building_height_sd_3x3", "building_height_sd_5x5")
-
-lidar_crs <- projectRaster(lidar,crs = "+proj=longlat +datum=WGS84 +no_defs",
-                           method = "ngb" ,r)
+#load meteo raster
+#load time raster
+setwd("C:/Users/Dana/sciebo/ndom/klaus/Prediction/Stacks_for_prediction/")
+meteo_149<-stack("meteo__149.grd")
+meteo_283<-stack("meteo__283.grd")
+meteo_387<-stack("meteo__387.grd")
 
 #set height of non-existing buildings to 0 
-values(lidar_crs$building_height)[is.na(values(lidar_crs$building_height))]<-0
-values(lidar_crs$building_height_sd_3x3)[is.na(values(lidar_crs$building_height_sd_3x3))]<-0
-values(lidar_crs$building_height_sd_5x5)[is.na(values(lidar_crs$building_height_sd_5x5))]<-0
-
+#for pred_stack_06
+values(pred_stack_06$building_height)[is.na(values(pred_stack_06$building_height))]<-0
+values(pred_stack_06$building_height_sd_3x3)[is.na(values(pred_stack_06$building_height_sd_3x3))]<-0
+values(pred_stack_06$building_height_sd_5x5)[is.na(values(pred_stack_06$building_height_sd_5x5))]<-0
+#for pred_stack_07
+values(pred_stack_07$building_height)[is.na(values(pred_stack_07$building_height))]<-0
+values(pred_stack_07$building_height_sd_3x3)[is.na(values(pred_stack_07$building_height_sd_3x3))]<-0
+values(pred_stack_07$building_height_sd_5x5)[is.na(values(pred_stack_07$building_height_sd_5x5))]<-0
+#check with month
+meteo[149,]
+meteo[283,]
+meteo[387,]
 #stack all
-pred_stack_all_163 <- stack(pred_stack_06, lidar_crs, meteo_163, time_163)
-pred_stack_all_609<- stack(pred_stack_07, lidar_crs, meteo_609, time_609)
-pred_stack_all_36<- stack(pred_stack_06, lidar_crs, meteo_36, time_36)
-#mapview(pred_stack_all_547, maxpixels =  5073950)
-#plot(pred_stack_all_547)
+pred_stack_all_149 <- stack(pred_stack_06,  meteo_149, time_149)
+pred_stack_all_283<- stack(pred_stack_06, meteo_283, time_283)
+pred_stack_all_387<- stack(pred_stack_07, meteo_387, time_387)
 
-names(pred_stack_all_163)
-plot(pred_stack_all_163)
-plot(pred_stack_all_609)
+#check
+names(pred_stack_all_149)
+png(file="pred_stack_149.png",
+    width = 300, height=200, units="mm", res = 200)
+plot(pred_stack_all_149)
+dev.off()
 
 #save as raster
-setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Modell/pred_stacks/")
-writeRaster(pred_stack_all_163,filename= "pred_stack_all_163.tif", bylayer=F,format="raster",overwrite=T)
-writeRaster(pred_stack_all_609,filename= "pred_stack_all_609.tif", bylayer=F,format="raster",overwrite=T)
-writeRaster(pred_stack_all_36,filename= "pred_stack_all_36.tif", bylayer=F,format="raster",overwrite=T)
+setwd("C:/Users/Dana/sciebo/ndom/klaus/Prediction/Stacks_for_prediction/")
+writeRaster(pred_stack_all_149,filename= "pred_stack_all_149.tif", bylayer=F,format="raster",overwrite=T)
+writeRaster(pred_stack_all_283,filename= "pred_stack_all_283.tif", bylayer=F,format="raster",overwrite=T)
+writeRaster(pred_stack_all_387,filename= "pred_stack_all_387.tif", bylayer=F,format="raster",overwrite=T)
 
 #load raster
-pred_stack_all_163<-stack("pred_stack_all_163.grd")
-pred_stack_all_609<-stack("pred_stack_all_36.grd")
-pred_stack_all_36<-stack("pred_stack_all_609.grd")
+pred_stack_all_149<-stack("pred_stack_all_149.grd")
+pred_stack_all_609<-stack("pred_stack_all_283.grd")
+pred_stack_all_36<-stack("pred_stack_all_387.grd")
 
-range_pred<-data.frame(rep(NA, times=nlayers(pred_stack_all_609)))
-range_pred$highest<-NA
-for(i in 1:nlayers(pred_stack_all_609)){
-  range_pred[i,]<-range(values(pred_stack_all_609[[i]]), na.rm=T)
-}
-range_pred$names<-names(pred_stack_all_609)
+#range_pred<-data.frame(rep(NA, times=nlayers(pred_stack_all_609)))
+#range_pred$highest<-NA
+#for(i in 1:nlayers(pred_stack_all_609)){
+#  range_pred[i,]<-range(values(pred_stack_all_609[[i]]), na.rm=T)
+#}
+#range_pred$names<-names(pred_stack_all_609)
 #extract a smaller area
-plot(pred_stack_all_36$albedo)
-extent(pred_stack_all_36)
-coords<-c(7.473961, 7.484256 , 51.8402 , 51.85021)
-pred_stack_small<-crop(pred_stack_all_36, coords)
-pred_stack_small_2<-crop(pred_stack_all_609, coords)
-mapview(pred_stack_small)
-aoa_test<-aoa(pred_stack_small, model)
-aoa_test_2<-aoa(pred_stack_small_2, model)
+#plot(pred_stack_all_36$albedo)
+#extent(pred_stack_all_36)
+#coords<-c(7.473961, 7.484256 , 51.8402 , 51.85021)
+#pred_stack_small<-crop(pred_stack_all_36, coords)
 
-plot(aoa_test_2)
+#plot(model$trainingData)
+#for(i in 1:length(model$trainingData)){
+#  print(range(model$trainingData[,i]))
+#}
 
-plot(pred_stack_small[[1:10]])
-plot(pred_stack_small[[11:22]])
-
-plot(model$trainingData)
-for(i in 1:length(model$trainingData)){
-  print(range(model$trainingData[,i]))
-}
-
-range_td<-lapply(model$trainingData, range)
-range_df<-data.frame( "range"=range_td)
-test<-do.call(rbind.data.frame, range_td)
-test$names<-names(range_td)
-names(test)<-c("lowest", "highest", "name")
+#range_td<-lapply(model$trainingData, range)
+#range_df<-data.frame( "range"=range_td)
+#test<-do.call(rbind.data.frame, range_td)
+#test$names<-names(range_td)
+#names(test)<-c("lowest", "highest", "name")
 
 #predict
-model_163_predict<-predict(pred_stack_all_163, model, savePrediction=TRUE)
-model_609_predict<-predict(pred_stack_all_609, model, savePrediction=TRUE)
-model_36_predict<-predict(pred_stack_all_36, model, savePrediction=TRUE)
+model_149_predict<-predict(pred_stack_all_149, model, savePrediction=TRUE)
+model_283_predict<-predict(pred_stack_all_283, model, savePrediction=TRUE)
+model_387_predict<-predict(pred_stack_all_387, model, savePrediction=TRUE)
 
 #view
-mapview(model_163_predict, maxpixels =  5073950)
-plot(model_609_predict)
-mapview(model_609_predict)
+mapview(model_149_predict) #2020-06-11 04:00:00
+mapview(model_283_predict) #2020-06-16 18:00:00
+mapview(model_387_predict) #2020-07-05 01:00:00
 
-plot(model_36_predict)
-mapview(model_36_predict)
-
-#check which time was predicted
-all_temp[163,] #2020-06-16 12:00:00
-all_temp[609,] #2020-07-23 04:00:00 
-all_temp[36,] #2020-06-11 05:00:00 
+png(file="predict_283_klaus.png", width = 300, height=200, units="mm", res = 200)
+spplot(model_283_predict)
+dev.off()
 
 #calculate AOA
 model_163_aoa<-aoa(pred_stack_all_163, model, cl=cl)

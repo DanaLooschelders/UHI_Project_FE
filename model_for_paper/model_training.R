@@ -35,8 +35,5 @@ model <- CAST::ffs(total_stack[,c( "albedo","ndvi","copernicus_water_wetness_3x3
                          savePrediction=TRUE, cl=cl)
 model
 
-#save model in sciebo
-
+#save model in sciebo 
 saveRDS(model,file="ffs_Model_2022-10-13.RDS") # modell speichern!
-
-
