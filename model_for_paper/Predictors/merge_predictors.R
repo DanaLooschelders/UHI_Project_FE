@@ -57,14 +57,14 @@ rl_mean<-raster("ndom_mean_10m")
 #reproject
 rl_mean<-projectRaster(rl_mean, crs = "+proj=longlat +datum=WGS84 +no_defs",
               method = "ngb" ,r)
-writeRaster(rl_mean,"ndom_mean_10m_reproj" )
+writeRaster(rl_mean,"ndom_mean_10m_reproj", overwrite=T)
 #standard deviation
 rl_sd<-raster("ndom_sd_10m")
 #reproject
 rl_sd<-projectRaster(rl_sd, crs = "+proj=longlat +datum=WGS84 +no_defs",
                        method = "ngb" ,r)
 
-writeRaster(rl_sd,"ndom_sd_10m_reproj" )
+writeRaster(rl_sd,"ndom_sd_10m_reproj", overwrite=T)
 
 #load shape of münster
 gadm <- getData('GADM',country='DEU', level =2) 
@@ -84,7 +84,6 @@ albedo_crs_06 <- projectRaster(albedo_ndvi_06,crs = "+proj=longlat +datum=WGS84 
 albedo_crs_07 <- projectRaster(albedo_ndvi_07,crs = "+proj=longlat +datum=WGS84 +no_defs",
                                method = "ngb",r)
 
-beep()
 #stack all static
 all_static_pred_06 <- stack(albedo_crs_06, all)
 all_static_pred_07 <- stack(albedo_crs_07, all)
@@ -105,13 +104,23 @@ lidar <- stack("Lidar_building_height.grd",
 names(lidar) <- c("building_height", "building_height_sd_3x3", "building_height_sd_5x5")
 lidar_crs <- projectRaster(lidar,crs = "+proj=longlat +datum=WGS84 +no_defs",
                            method = "ngb" ,r)
-beep()
+
 pred_stack_06 <- stack(all_static_pred_06, lidar_crs)
 pred_stack_07 <- stack(all_static_pred_07, lidar_crs)
+#rename some layer
+names(pred_stack_06)
+names(pred_stack_06)[names(pred_stack_06)==c("layer")]<-"SVF"
+names(pred_stack_06)[names(pred_stack_06)==c("ndom_crop_muenster_int_1m.1")]<-"element_height_mean"
+names(pred_stack_06)[names(pred_stack_06)==c("ndom_crop_muenster_int_1m.2")]<-"element_height_sd"
+
+names(pred_stack_07)
+names(pred_stack_07)[names(pred_stack_07)==c("layer")]<-"SVF"
+names(pred_stack_07)[names(pred_stack_07)==c("ndom_crop_muenster_int_1m.1")]<-"element_height_mean"
+names(pred_stack_07)[names(pred_stack_07)==c("ndom_crop_muenster_int_1m.2")]<-"element_height_sd"
 
 setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Praediktoren")
-writeRaster(pred_stack_06, "pred_stack_06_20221012.tif", bylayer=F, format="raster", overwrite=T)
-writeRaster(pred_stack_07, "pred_stack_07_20221012.tif", bylayer=F, format="raster", overwrite=T)
+writeRaster(pred_stack_06, "pred_stack_06_20221018.tif", bylayer=F, format="raster", overwrite=T)
+writeRaster(pred_stack_07, "pred_stack_07_20221018.tif", bylayer=F, format="raster", overwrite=T)
 #load stacks
 #setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Praediktoren")
 #pred_stack_06<-stack("all_static_pred_06.grd")
@@ -123,11 +132,9 @@ load("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Trainingsdaten/SpatialPoint
 times_06 <- read.csv("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Praediktoren/Time_of_day/times_06.csv")
 times_07 <- read.csv("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Praediktoren/Time_of_day/times_07.csv")
 
-times_06$date <- as.POSIXct(times_06$date,"%Y-%m-%d %H:%M:%S")
-times_06$date_time <- as.POSIXct(paste(times_06$date, times_06$time), format="%Y-%m-%d %H:%M:%S")
+times_06$date_time <- as.POSIXct(paste(times_06$day, times_06$time), format="%Y-%m-%d %H:%M:%S")
 
-times_07$date <- as.POSIXct(times_07$date,"%Y-%m-%d %H:%M:%S")
-times_07$date_time <- as.POSIXct(paste(times_07$date, times_07$time), format="%Y-%m-%d %H:%M:%S")
+times_07$date_time <- as.POSIXct(paste(times_07$day, times_07$time), format="%Y-%m-%d %H:%M:%S")
   
 remove(total_stack)
 remove(total_stack_temp)
@@ -136,7 +143,7 @@ remove(total_stack_temp)
 #load training data points
 setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Trainingsdaten/")
 load("SpatialPoints_Temp_Data")
-str(spatial_list)
+#str(spatial_list)
 setwd( "C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Trainingsdaten/Logger")
 all_temp<-read.csv("all_temp.csv")
 
@@ -148,7 +155,7 @@ str(meteo)
 colnames(meteo)[1]<-"date_time"
 meteo$date_time<-as.POSIXct(meteo$date_time)
 
-remove(total_stack)
+
 #load dynamic predictors 
 for(i in 1:222){
   if(!exists("total_stack")){
@@ -193,7 +200,7 @@ for(i in 1:222){
 } 
 beep()
 setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Praediktoren/")
-write.csv(total_stack, file ="total_stack_06_20221012.csv")
+write.csv(total_stack, file ="total_stack_06_20221018.csv")
 
 remove(total_stack)
 remove(total_stack_temp)
@@ -239,12 +246,12 @@ for(i in 223:length((spatial_list))){
     total_stack<-rbind(total_stack, total_stack_temp)
   }
 }  
-beep()
+
 setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Praediktoren/")
-write.csv(total_stack, file ="total_stack_07_20221012.csv")
+write.csv(total_stack, file ="total_stack_07_20221018.csv")
 remove(total_stack, total_stack_temp)
-total_stack_06 <- read.csv("total_stack_06_20221012.csv")
-total_stack_07 <- read.csv("total_stack_07_20221012.csv") 
+total_stack_06 <- read.csv("total_stack_06_20221018.csv")
+total_stack_07 <- read.csv("total_stack_07_20221018.csv") 
 
 names(total_stack_07)[names(total_stack_07) == 'albedo_07'] <- 'albedo'
 names(total_stack_07)[names(total_stack_07) == 'ndvi_07'] <- 'ndvi'
@@ -254,23 +261,24 @@ names(total_stack_06)[names(total_stack_06) == 'ndvi_06'] <- 'ndvi'
   
 total <- rbind(total_stack_06, total_stack_07)
 total <- total[,2:35] #remove double first column
-
-write.csv(total, file ="total_stack_20221012.csv")
-
-total_stack_new<-read.csv("total_stack_20221012.csv")  
+plot(total$hours_ssr, type="l")
+lines(total$hours_sss, type="l", col="red")
 
 #cheat for stability
-for(i in 1:length(total_stack_new$meteo_stability)){
-  total_stack_new$meteo_stability[i]<-meteo$meteo_stability[meteo$date_time==total_stack_new$date_time[i]]
+for(i in 1:length(total$meteo_stability)){
+  total$meteo_stability[i]<-meteo$meteo_stability[meteo$date_time==total$date_time[i]]
 }
 
 #set height of non-existing buildings to 0 
-total_stack_new$building_height[is.na(total_stack_new$building_height)]<-0
-total_stack_new$building_height_sd_3x3[is.na(total_stack_new$building_height_sd_3x3)]<-0
-total_stack_new$building_height_sd_5x5[is.na(total_stack_new$building_height_sd_5x5)]<-0
+total$building_height[is.na(total$building_height)]<-0
+total$building_height_sd_3x3[is.na(total$building_height_sd_3x3)]<-0
+total$building_height_sd_5x5[is.na(total$building_height_sd_5x5)]<-0
 
 #set to 0
-total_stack_new$hours_ssr[is.na(total_stack_new$hours_ssr)]<-0
-total_stack_new$hours_sss[is.na(total_stack_new$hours_sss)]<-0
+total_$hours_ssr[is.na(total$hours_ssr)]<-0
+total$hours_sss[is.na(total$hours_sss)]<-0
 
-write.csv(total_stack_new, file ="total_stack_20221012.csv", row.names = F)
+write.csv(total, file ="total_stack_20221018.csv", row.names = F)
+
+test<-read.csv(file="total_stack_06_20221012.csv")
+

@@ -1,0 +1,138 @@
+#predict for whole time period
+#load model
+setwd("C:/Users/Dana/sciebo/ndom/klaus/")
+model<-readRDS(file = "ffs_Model_2022-10-13.RDS")
+#load meteo data
+setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Praediktoren/Meteorologie")
+meteo<-read.csv("meteo_all.csv")
+meteo$datetime<-as.POSIXct(meteo$datetime)
+
+#load static pred stack
+setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Praediktoren")
+pred_stack_06<-stack("pred_stack_06_20221012.grd")
+names(pred_stack_06)[1:2]<-c("albedo","ndvi") #rename to match model
+pred_stack_07<-stack("pred_stack_07_20221012.grd")
+names(pred_stack_07)[1:2]<-c("albedo","ndvi") #rename to match model
+
+#load empty raster for meteos
+setwd("C:/Users/Dana/sciebo/ndom/klaus/Prediction/Stacks_for_prediction/")
+raster_Steinf<-stack("empty_Raster_Steinf.grd")
+
+setwd("D:/Meteo/")
+#####meteo####
+for(i in 1:nrow(meteo)){
+  #Temperature
+  raster_Steinf_temp<-raster_Steinf
+  values(raster_Steinf_temp)<-meteo$meteo_Temp[i]
+  #relative humidity
+  raster_Steinf_RH<-raster_Steinf
+  values(raster_Steinf_RH)<-meteo$meteo_rH[i]
+  #stability
+  raster_Steinf_stability<-raster_Steinf
+  values(raster_Steinf_stability)<-meteo$meteo_stability[i]
+  #cloudcover
+  raster_Steinf_cloudcover<-raster_Steinf
+  values(raster_Steinf_cloudcover)<-meteo$meteo_cloudcover[i]
+  #radiation
+  raster_Steinf_radiation<-raster_Steinf
+  values(raster_Steinf_radiation)<-meteo$meteo_radiation[i]
+  #cum_radiation
+  raster_Steinf_cum_radiation<-raster_Steinf
+  values(raster_Steinf_cum_radiation)<-meteo$meteo_cum_radiation[i]
+  #precipitation current
+  raster_Steinf_precip<-raster_Steinf
+  values(raster_Steinf_precip)<-meteo$meteo_precip[i]
+  #precipitation last 3h
+  raster_Steinf_precip3h<-raster_Steinf
+  values(raster_Steinf_precip3h)<-meteo$meteo_precip3hour[i]
+  #precipitation last day
+  raster_Steinf_precip1day<-raster_Steinf
+  values(raster_Steinf_precip1day)<-meteo$meteo_precip1day[i]
+  #wind speed
+  raster_Steinf_windspeed<-raster_Steinf
+  values(raster_Steinf_windspeed)<-meteo$meteo_windspeed[i]
+  #wind direction
+  raster_Steinf_winddir<-raster_Steinf
+  values(raster_Steinf_winddir)<-meteo$meteo_winddirection[i]
+  #stack values
+  meteo_stack<-stack(raster_Steinf_RH, raster_Steinf_temp, raster_Steinf_stability,
+                     raster_Steinf_cloudcover, raster_Steinf_radiation, 
+                     raster_Steinf_cum_radiation, raster_Steinf_precip, raster_Steinf_precip3h,
+                     raster_Steinf_precip1day,raster_Steinf_windspeed, raster_Steinf_winddir)
+  #set layer names
+  names(meteo_stack)<-c("meteo_RH", "meteo_Temp", "meteo_stability", 
+                        "meteo_cloudcover", "meteo_radiation", "meteo_cum_radiation",
+                        "meteo_precip", "meteo_precip3hour", "meteo_precip1day",
+                        "meteo_windspeed","meteo_winddirection")
+  #write raster into file
+  writeRaster(meteo_stack, filename = paste("Meteo_", i,
+                                            sep="_"), overwrite=T)
+}
+beep()
+setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Praediktoren/Time_of_day/")
+times<-read.csv("times_tidy_20221018.csv")
+times$hours_ssr[is.na(times$hours_ssr)]<-0
+times$hours_sss[is.na(times$hours_sss)]<-0
+####times of day####
+setwd("D:/Times/")
+
+for(i in 1:267){
+  tryCatch({
+  #hours_sss
+  raster_Steinf_sss<-raster_Steinf
+  values(raster_Steinf_sss)<-times$hours_sss[i]
+  #hours_ssr
+  raster_Steinf_ssr<-raster_Steinf
+  values(raster_Steinf_ssr)<-times$hours_ssr[i]
+  #stack values
+  time_stack<-stack(raster_Steinf_sss, raster_Steinf_ssr)
+  #set layer names
+  names(time_stack)<-c("hours_sss", "hours_ssr")
+  #write raster into file
+  writeRaster(time_stack, filename = paste("time_", i,
+                                           sep="_"), overwrite=T)
+  }, error=function(e){})
+}
+
+beep()
+
+#create output list
+pred_list<-vector(mode='list', length=267)
+
+for(i in 223:267){
+  print(i)
+  if(i<=222){ #take june pred stack
+    #load meteo data
+    meteo_name<-paste("meteo__", i, ".grd", sep = "")
+    meteo_stack<-stack(paste("D:/Meteo/", meteo_name, sep = ""))
+    #load times data
+    times_name<-paste("time__", i, ".grd", sep = "")
+    times_stack<-stack(paste("D:/Times/", times_name, sep = ""))
+    #stack predictors
+    pred_stack_temp<-stack(meteo_stack, times_stack, pred_stack_06)
+    #predict
+    pred_list[[i]]<-predict(pred_stack_temp, model, savePrediction=TRUE)
+  }else{ #take july pred stack
+    #load meteo data
+    meteo_name<-paste("meteo__", i, ".grd", sep = "")
+    meteo_stack<-stack(paste("D:/Meteo/", meteo_name, sep = ""))
+    #load times data
+    times_name<-paste("time__", i, ".grd", sep = "")
+    times_stack<-stack(paste("D:/Times/", times_name, sep = ""))
+    #stack predictors
+    pred_stack_temp<-stack(meteo_stack, times_stack, pred_stack_07)
+    #predict
+    pred_list[[i]]<-predict(pred_stack_temp, model, savePrediction=TRUE)
+  }
+}
+beep()
+
+pred_list[[267]]<-NULL
+#stack all predictions
+pred_plot_stack <- stack(pred_list)
+
+animate(pred_plot_stack, pause=0.1)
+
+spplot(pred_list[[3]])
+
+mapview(pred_list[[3]])

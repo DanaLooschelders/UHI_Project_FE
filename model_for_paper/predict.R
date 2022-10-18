@@ -1,5 +1,4 @@
 #model metrics
-
 library(RStoolbox)
 library(dplyr)
 library(terra)
@@ -44,14 +43,12 @@ dev.off()
 
 #load meteo data
 setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Praediktoren/Meteorologie")
-#setwd("/Users/ameliewendiggensen/sciebo/UHI_Projekt_Fernerkundung/Prädiktoren/Meteorologie")
 meteo<-read.csv("meteo_all.csv")
-str(meteo)
 meteo$datetime<-as.POSIXct(meteo$datetime)
 #predict
 set.seed(6)
 sample<-sample(1:nrow(meteo),4)
-sample<-c(283, 387, 149, 392)
+sample<-c(283, 387, 148, 149, 150, 160, 392) #148 and 150 was added to check
 #random sample is 283 387 149 392
 
 #load static pred stack
@@ -70,7 +67,11 @@ ref_raster<-raster("copernicus_imperviousness_crop_MS_10m.tif")
 r <- raster(ncol=ncol(ref_raster), nrow=nrow(ref_raster), 
             crs = "+proj=longlat +datum=WGS84 +no_defs")
 extent(r) <- extent(ref_raster)
+setwd("C:/Users/Dana/sciebo/ndom/klaus/Prediction/Stacks_for_prediction")
+gadm<-readRDS("gadm36_DEU_2_sp.rds")
 raster_Steinf<-rasterize(gadm, r)
+beep()
+writeRaster(raster_Steinf, file="empty_Raster_Steinf")
 #set wd
 setwd("C:/Users/Dana/sciebo/ndom/klaus/Prediction/Stacks_for_prediction/")
 #run loop for all samples
@@ -142,6 +143,9 @@ names(meteo)[1]<-"date_time"
 times_tidy<-left_join(meteo[,c("date_time", "meteo_Temp")], times, by = "date_time")
 times_tidy<-times_tidy[,-2]
 
+write.csv(times_tidy, 
+          file="C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Praediktoren/Time_of_day/times_tidy_20221018.csv", 
+          row.names = F)
 #change NA values to 0
 times$hours_sss[is.na(times$hours_sss)]<-0
 times$hours_ssr[is.na(times$hours_ssr)]<-0
@@ -173,17 +177,24 @@ for(i in sample){
 beep()
 #load time raster
 setwd("C:/Users/Dana/sciebo/ndom/klaus/Prediction/Stacks_for_prediction/")
+time_148<-stack("time__148.grd")
 time_149<-stack("time__149.grd")
+time_150<-stack("time__150.grd")
+time_160<-stack("time__160.grd")
 time_283<-stack("time__283.grd")
 time_387<-stack("time__387.grd")
+time_392<-stack("time__392.grd")
 
 #load meteo raster
 #load time raster
 setwd("C:/Users/Dana/sciebo/ndom/klaus/Prediction/Stacks_for_prediction/")
+meteo_148<-stack("meteo__148.grd")
 meteo_149<-stack("meteo__149.grd")
+meteo_150<-stack("meteo__150.grd")
+meteo_160<-stack("Meteo__160.grd")
 meteo_283<-stack("meteo__283.grd")
 meteo_387<-stack("meteo__387.grd")
-
+meteo_392<-stack("meteo__392.grd")
 #set height of non-existing buildings to 0 
 #for pred_stack_06
 values(pred_stack_06$building_height)[is.na(values(pred_stack_06$building_height))]<-0
@@ -197,10 +208,15 @@ values(pred_stack_07$building_height_sd_5x5)[is.na(values(pred_stack_07$building
 meteo[149,] #2020-06-11 04:00:00  
 meteo[283,] #2020-06-16 18:00:00
 meteo[387,] #2020-07-05 01:00:00 
+meteo[392,] #2020-07-05 06:00:00
 #stack all
+pred_stack_all_148 <- stack(pred_stack_06,  meteo_148, time_148)
 pred_stack_all_149 <- stack(pred_stack_06,  meteo_149, time_149)
-pred_stack_all_283<- stack(pred_stack_06, meteo_283, time_283)
-pred_stack_all_387<- stack(pred_stack_07, meteo_387, time_387)
+pred_stack_all_150 <- stack(pred_stack_06,  meteo_150, time_150)
+pred_stack_all_160 <- stack(pred_stack_06,  meteo_160, time_160)
+pred_stack_all_283 <- stack(pred_stack_06, meteo_283, time_283)
+pred_stack_all_387 <- stack(pred_stack_07, meteo_387, time_387)
+pred_stack_all_392 <- stack(pred_stack_07, meteo_392, time_392)
 
 #check
 names(pred_stack_all_149)
@@ -214,12 +230,13 @@ setwd("C:/Users/Dana/sciebo/ndom/klaus/Prediction/Stacks_for_prediction/")
 writeRaster(pred_stack_all_149,filename= "pred_stack_all_149.tif", bylayer=F,format="raster",overwrite=T)
 writeRaster(pred_stack_all_283,filename= "pred_stack_all_283.tif", bylayer=F,format="raster",overwrite=T)
 writeRaster(pred_stack_all_387,filename= "pred_stack_all_387.tif", bylayer=F,format="raster",overwrite=T)
-beep()
+writeRaster(pred_stack_all_392,filename= "pred_stack_all_392.tif", bylayer=F,format="raster",overwrite=T)
+
 #load raster
 pred_stack_all_149<-stack("pred_stack_all_149.grd")
-pred_stack_all_609<-stack("pred_stack_all_283.grd")
-pred_stack_all_36<-stack("pred_stack_all_387.grd")
-
+pred_stack_all_283<-stack("pred_stack_all_283.grd")
+pred_stack_all_387<-stack("pred_stack_all_387.grd")
+pred_stack_all_392<-stack("pred_stack_all_392.grd")
 #range_pred<-data.frame(rep(NA, times=nlayers(pred_stack_all_609)))
 #range_pred$highest<-NA
 #for(i in 1:nlayers(pred_stack_all_609)){
@@ -244,22 +261,33 @@ pred_stack_all_36<-stack("pred_stack_all_387.grd")
 #names(test)<-c("lowest", "highest", "name")
 
 #predict
+model_148_predict<-predict(pred_stack_all_148, model, savePrediction=TRUE)
 model_149_predict<-predict(pred_stack_all_149, model, savePrediction=TRUE)
+model_150_predict<-predict(pred_stack_all_150, model, savePrediction=TRUE)
+model_160_predict<-predict(pred_stack_all_160, model, savePrediction=TRUE)
 model_283_predict<-predict(pred_stack_all_283, model, savePrediction=TRUE)
 model_387_predict<-predict(pred_stack_all_387, model, savePrediction=TRUE)
+model_392_predict<-predict(pred_stack_all_392, model, savePrediction=TRUE)
 beep()
-
 #view
+spplot(model_148_predict)
+spplot(model_149_predict)
+spplot(model_150_predict)
+spplot(model_160_predict)
 mapview(model_149_predict) #2020-06-11 04:00:00
+
 spplot(model_149_predict)
 mapview(model_283_predict) #2020-06-16 18:00:00
 mapview(model_387_predict) #2020-07-05 01:00:00
+mapview(model_392_predict) #2020-07-05 06:00:00
 
 png(file="predict_283_klaus.png", width = 300, height=200, units="mm", res = 200)
 spplot(model_283_predict)
 dev.off()
 
-#calculate AOA
+#something really weird happens for prediction 149
+
+####calculate AOA####
 model_149_aoa<-aoa(pred_stack_all_149, model, cl=cl)
 model_283_aoa<-aoa(pred_stack_all_283, model, cl=cl)
 model_387_aoa<-aoa(pred_stack_all_387, model, cl=cl)
