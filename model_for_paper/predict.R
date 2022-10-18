@@ -1,4 +1,9 @@
 #model metrics
+
+library(RStoolbox)
+library(dplyr)
+library(terra)
+
 library(sp)
 library(sf) 
 library(mapview)
@@ -11,6 +16,7 @@ library(CAST)
 library(caret)
 library(randomForest)
 library(latticeExtra)
+library(beepr)
 #parallel
 library(parallel)
 #install.packages("doParallel")
@@ -41,9 +47,11 @@ setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Praediktoren/Meteorologie"
 #setwd("/Users/ameliewendiggensen/sciebo/UHI_Projekt_Fernerkundung/Prädiktoren/Meteorologie")
 meteo<-read.csv("meteo_all.csv")
 str(meteo)
+meteo$datetime<-as.POSIXct(meteo$datetime)
 #predict
 set.seed(6)
 sample<-sample(1:nrow(meteo),4)
+sample<-c(283, 387, 149, 392)
 #random sample is 283 387 149 392
 
 #load static pred stack
@@ -120,6 +128,20 @@ times_06 <- read.csv("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Praediktore
 times_07 <- read.csv("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Praediktoren/Time_of_day/times_07.csv")
 #combine
 times<-rbind(times_06, times_07)
+#add column with datetime
+times$date_time <- as.POSIXct(paste(times$day, times$time), format="%Y-%m-%d %H:%M:%S")
+range(times$date_time, na.rm=T)
+range(meteo$datetime)
+#cut times to length of meteo
+times<-times[times$date_time>=range(meteo$datetime)[1]&times$date_time<=range(meteo$datetime)[2],]
+any(duplicated(times$date_time)==TRUE) #no duplicated values
+which(diff(meteo$datetime)>1)
+which(diff(times$date_time)>1)
+names(meteo)[1]<-"date_time"
+#cut times to length of meteo
+times_tidy<-left_join(meteo[,c("date_time", "meteo_Temp")], times, by = "date_time")
+times_tidy<-times_tidy[,-2]
+
 #change NA values to 0
 times$hours_sss[is.na(times$hours_sss)]<-0
 times$hours_ssr[is.na(times$hours_ssr)]<-0
@@ -148,7 +170,7 @@ for(i in sample){
   writeRaster(time_stack, filename = paste("time_", i,
                                             sep="_"), overwrite=T)
 }
-
+beep()
 #load time raster
 setwd("C:/Users/Dana/sciebo/ndom/klaus/Prediction/Stacks_for_prediction/")
 time_149<-stack("time__149.grd")
@@ -172,9 +194,9 @@ values(pred_stack_07$building_height)[is.na(values(pred_stack_07$building_height
 values(pred_stack_07$building_height_sd_3x3)[is.na(values(pred_stack_07$building_height_sd_3x3))]<-0
 values(pred_stack_07$building_height_sd_5x5)[is.na(values(pred_stack_07$building_height_sd_5x5))]<-0
 #check with month
-meteo[149,]
-meteo[283,]
-meteo[387,]
+meteo[149,] #2020-06-11 04:00:00  
+meteo[283,] #2020-06-16 18:00:00
+meteo[387,] #2020-07-05 01:00:00 
 #stack all
 pred_stack_all_149 <- stack(pred_stack_06,  meteo_149, time_149)
 pred_stack_all_283<- stack(pred_stack_06, meteo_283, time_283)
@@ -184,7 +206,7 @@ pred_stack_all_387<- stack(pred_stack_07, meteo_387, time_387)
 names(pred_stack_all_149)
 png(file="pred_stack_149.png",
     width = 300, height=200, units="mm", res = 200)
-plot(pred_stack_all_149)
+plot(pred_stack_all_149[[18:30]])
 dev.off()
 
 #save as raster
@@ -192,7 +214,7 @@ setwd("C:/Users/Dana/sciebo/ndom/klaus/Prediction/Stacks_for_prediction/")
 writeRaster(pred_stack_all_149,filename= "pred_stack_all_149.tif", bylayer=F,format="raster",overwrite=T)
 writeRaster(pred_stack_all_283,filename= "pred_stack_all_283.tif", bylayer=F,format="raster",overwrite=T)
 writeRaster(pred_stack_all_387,filename= "pred_stack_all_387.tif", bylayer=F,format="raster",overwrite=T)
-
+beep()
 #load raster
 pred_stack_all_149<-stack("pred_stack_all_149.grd")
 pred_stack_all_609<-stack("pred_stack_all_283.grd")
@@ -225,9 +247,11 @@ pred_stack_all_36<-stack("pred_stack_all_387.grd")
 model_149_predict<-predict(pred_stack_all_149, model, savePrediction=TRUE)
 model_283_predict<-predict(pred_stack_all_283, model, savePrediction=TRUE)
 model_387_predict<-predict(pred_stack_all_387, model, savePrediction=TRUE)
+beep()
 
 #view
 mapview(model_149_predict) #2020-06-11 04:00:00
+spplot(model_149_predict)
 mapview(model_283_predict) #2020-06-16 18:00:00
 mapview(model_387_predict) #2020-07-05 01:00:00
 
@@ -236,17 +260,37 @@ spplot(model_283_predict)
 dev.off()
 
 #calculate AOA
-model_163_aoa<-aoa(pred_stack_all_163, model, cl=cl)
-mapview(model_163_aoa$DI)
+model_149_aoa<-aoa(pred_stack_all_149, model, cl=cl)
+model_283_aoa<-aoa(pred_stack_all_283, model, cl=cl)
+model_387_aoa<-aoa(pred_stack_all_387, model, cl=cl)
 
-#aoa only NAs
-summary(model$trainingData)
-summary(model_163_aoa$AOA)
-summary(model_163_aoa$DI)
-barplot(values(model_163_aoa$DI))
+#plot aoa
+setwd("C:/Users/Dana/sciebo/ndom/klaus/Prediction")
+#DI
+mapview(model_283_aoa$DI)
+png(file="DI_283_klaus.png", width = 300, height=200, units="mm", res = 200)
+spplot(model_283_aoa$DI)
+dev.off()
 
-plot(model_163_aoa$AOA)
-which.max(values(model_163_aoa$DI))
+png(file="DI_hist_283_klaus.png", width = 300, height=200, units="mm", res = 200)
+hist(model_283_aoa$DI)
+dev.off()
+#AOA
+png(file="AOA_283_klaus.png", width = 300, height=200, units="mm", res = 200)
+spplot(model_283_aoa$AOA)
+dev.off()
+png(file="AOA_hist_283_klaus.png", width = 300, height=200, units="mm", res = 200)
+hist(model_283_aoa$AOA, breaks=100)
+dev.off()
 
-summary(values(model_163_aoa$DI))
-sum(!is.na(values(model_163_aoa$DI)))
+saveRDS(file="model_aoa_283.RDS", model_283_aoa)
+saveRDS(file= "pred_stack_283.RDS",pred_stack_all_283)
+
+range(values(model_283_aoa$AOA), na.rm=T) # 1 1
+range(values(model_283_aoa$DI), na.rm=T) #1.732454e-07 7.434506e-01
+
+plot(model_149_aoa$AOA)
+which.max(values(model_149_aoa$DI))
+
+summary(values(model_149_aoa$DI))
+sum(!is.na(values(model_149_aoa$DI)))
