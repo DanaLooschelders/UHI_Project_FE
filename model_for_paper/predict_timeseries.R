@@ -1,3 +1,27 @@
+#model metrics
+library(RStoolbox)
+library(dplyr)
+library(terra)
+
+library(sp)
+library(sf) 
+library(mapview)
+library(raster)
+library(rgdal)
+library(tmap)
+library(tmaptools)
+library(stars)
+library(CAST)
+library(caret)
+library(randomForest)
+library(latticeExtra)
+library(beepr)
+#install.packages("animation")
+library(animation)
+#parallel
+library(parallel)
+#install.packages("doParallel")
+library(doParallel)
 #predict for whole time period
 #load model
 setwd("C:/Users/Dana/sciebo/ndom/klaus/")
@@ -13,6 +37,14 @@ pred_stack_06<-stack("pred_stack_06_20221012.grd")
 names(pred_stack_06)[1:2]<-c("albedo","ndvi") #rename to match model
 pred_stack_07<-stack("pred_stack_07_20221012.grd")
 names(pred_stack_07)[1:2]<-c("albedo","ndvi") #rename to match model
+#correct buildings
+values(pred_stack_06$building_height)[is.na(values(pred_stack_06$building_height))]<-0
+values(pred_stack_06$building_height_sd_3x3)[is.na(values(pred_stack_06$building_height_sd_3x3))]<-0
+values(pred_stack_06$building_height_sd_5x5)[is.na(values(pred_stack_06$building_height_sd_5x5))]<-0
+#for pred_stack_07
+values(pred_stack_07$building_height)[is.na(values(pred_stack_07$building_height))]<-0
+values(pred_stack_07$building_height_sd_3x3)[is.na(values(pred_stack_07$building_height_sd_3x3))]<-0
+values(pred_stack_07$building_height_sd_5x5)[is.na(values(pred_stack_07$building_height_sd_5x5))]<-0
 
 #load empty raster for meteos
 setwd("C:/Users/Dana/sciebo/ndom/klaus/Prediction/Stacks_for_prediction/")
@@ -99,7 +131,7 @@ beep()
 #create output list
 pred_list<-vector(mode='list', length=267)
 
-for(i in 223:267){
+for(i in 1:266){
   print(i)
   if(i<=222){ #take june pred stack
     #load meteo data
@@ -126,13 +158,33 @@ for(i in 223:267){
   }
 }
 beep()
+setwd("C:/Users/Dana/Desktop")
+saveRDS(pred_list, file="pred_list.RDS")
+rm(pred_list, pred_stack_06, pred_stack_07)
+pred_list<-readRDS(file="pred_list.RDS")
 
-pred_list[[267]]<-NULL
 #stack all predictions
-pred_plot_stack <- stack(pred_list)
+pred_plot_stack <- stack(pred_list[1:208])
+writeRaster(pred_plot_stack[[191:208]], "pred_plot_stack_10", overwrite=T)
+pred_plot_stack_test<-stack("pred_plot_stack_3.grd")
+names(pred_plot_stack_test)
+names(pred_plot_stack_test)<-meteo$datetime[31:50]
+#animate all layers of stack
+saveGIF(animate(pred_plot_stack_test, pause=0.2),
+        movie.name = "pred_2.gif")
 
-animate(pred_plot_stack, pause=0.1)
+setwd("C:/Users/Dana/Desktop/Pred_plot_stacks/")
+#create animated gif for all stacks
 
-spplot(pred_list[[3]])
-
-mapview(pred_list[[3]])
+for(i in 2:10){
+  print(i)
+  pred_plot_stack_test<-stack(paste("pred_plot_stack_",i, ".grd", sep=""))
+  #get rows for meteodata
+  rows<-as.numeric(substr(names(pred_plot_stack_test), start=7, stop=9))
+  #rename to time
+  names(pred_plot_stack_test)<-meteo$datetime[rows]
+  #save as gif
+  saveGIF(animate(pred_plot_stack_test, pause=0.2, col=heat.colors(n=30,rev = T)),
+          movie.name = paste("pred_", i, ".gif", sep=""))
+  
+}

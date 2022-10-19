@@ -275,7 +275,7 @@ total$building_height_sd_3x3[is.na(total$building_height_sd_3x3)]<-0
 total$building_height_sd_5x5[is.na(total$building_height_sd_5x5)]<-0
 
 #set to 0
-total_$hours_ssr[is.na(total$hours_ssr)]<-0
+total$hours_ssr[is.na(total$hours_ssr)]<-0
 total$hours_sss[is.na(total$hours_sss)]<-0
 
 write.csv(total, file ="total_stack_20221018.csv", row.names = F)
