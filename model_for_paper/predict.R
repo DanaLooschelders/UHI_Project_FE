@@ -231,12 +231,15 @@ writeRaster(pred_stack_all_149,filename= "pred_stack_all_149.tif", bylayer=F,for
 writeRaster(pred_stack_all_283,filename= "pred_stack_all_283.tif", bylayer=F,format="raster",overwrite=T)
 writeRaster(pred_stack_all_387,filename= "pred_stack_all_387.tif", bylayer=F,format="raster",overwrite=T)
 writeRaster(pred_stack_all_392,filename= "pred_stack_all_392.tif", bylayer=F,format="raster",overwrite=T)
-
+model$selectedvars
+varImp(model)
 #load raster
 pred_stack_all_149<-stack("pred_stack_all_149.grd")
 pred_stack_all_283<-stack("pred_stack_all_283.grd")
 pred_stack_all_387<-stack("pred_stack_all_387.grd")
 pred_stack_all_392<-stack("pred_stack_all_392.grd")
+
+aoa<-readRDS("../model_aoa_283.RDS")
 #range_pred<-data.frame(rep(NA, times=nlayers(pred_stack_all_609)))
 #range_pred$highest<-NA
 #for(i in 1:nlayers(pred_stack_all_609)){
