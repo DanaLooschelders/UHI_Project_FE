@@ -165,6 +165,7 @@ pred_list<-readRDS(file="pred_list.RDS")
 
 #stack all predictions
 pred_plot_stack <- stack(pred_list[1:208])
+rm(pred_list)
 writeRaster(pred_plot_stack[[191:208]], "pred_plot_stack_10", overwrite=T)
 pred_plot_stack_test<-stack("pred_plot_stack_3.grd")
 names(pred_plot_stack_test)
@@ -188,3 +189,13 @@ for(i in 2:10){
           movie.name = paste("pred_", i, ".gif", sep=""))
   
 }
+#get rows for meteodata
+rows<-as.numeric(substr(names(pred_plot_stack), start=7, stop=9))
+#rename to time
+names(pred_plot_stack)<-meteo$datetime[rows]
+
+#save gif for al frames
+saveGIF(animate(pred_plot_stack[[100:208]], pause=0.2, col=heat.colors(n=30,rev = T)),
+        movie.name = "pred_plot_whole_part_2.gif")
+beep()
+
