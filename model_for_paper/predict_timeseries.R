@@ -26,6 +26,8 @@ library(doParallel)
 #load model
 setwd("C:/Users/Dana/sciebo/ndom/klaus/")
 model<-readRDS(file = "ffs_Model_2022-10-13.RDS")
+writeRaster(total_stack[[149]], filename = "test_raster")
+varImp(model)
 #load meteo data
 setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Praediktoren/Meteorologie")
 meteo<-read.csv("meteo_all.csv")
@@ -52,7 +54,7 @@ raster_Steinf<-stack("empty_Raster_Steinf.grd")
 
 setwd("D:/Meteo/")
 #####meteo####
-for(i in 1:nrow(meteo)){
+for(i in 700:800){
   #Temperature
   raster_Steinf_temp<-raster_Steinf
   values(raster_Steinf_temp)<-meteo$meteo_Temp[i]
@@ -108,7 +110,7 @@ times$hours_sss[is.na(times$hours_sss)]<-0
 ####times of day####
 setwd("D:/Times/")
 
-for(i in 1:267){
+for(i in 700:800){
   tryCatch({
   #hours_sss
   raster_Steinf_sss<-raster_Steinf
@@ -129,10 +131,11 @@ for(i in 1:267){
 beep()
 
 #create output list
-pred_list<-vector(mode='list', length=267)
-
-for(i in 1:266){
+pred_list<-vector(mode='list', length=100)
+x=0 #initialise x
+for(i in 700:800){
   print(i)
+  x=x+1
   if(i<=222){ #take june pred stack
     #load meteo data
     meteo_name<-paste("meteo__", i, ".grd", sep = "")
@@ -143,7 +146,7 @@ for(i in 1:266){
     #stack predictors
     pred_stack_temp<-stack(meteo_stack, times_stack, pred_stack_06)
     #predict
-    pred_list[[i]]<-predict(pred_stack_temp, model, savePrediction=TRUE)
+    pred_list[[x]]<-predict(pred_stack_temp, model, savePrediction=TRUE)
   }else{ #take july pred stack
     #load meteo data
     meteo_name<-paste("meteo__", i, ".grd", sep = "")
@@ -154,25 +157,29 @@ for(i in 1:266){
     #stack predictors
     pred_stack_temp<-stack(meteo_stack, times_stack, pred_stack_07)
     #predict
-    pred_list[[i]]<-predict(pred_stack_temp, model, savePrediction=TRUE)
+    pred_list[[x]]<-predict(pred_stack_temp, model, savePrediction=TRUE)
   }
 }
 beep()
 setwd("C:/Users/Dana/Desktop")
-saveRDS(pred_list, file="pred_list.RDS")
+saveRDS(pred_list, file="pred_list_700_800.RDS")
 rm(pred_list, pred_stack_06, pred_stack_07)
 pred_list<-readRDS(file="pred_list.RDS")
 
 #stack all predictions
-pred_plot_stack <- stack(pred_list[1:208])
-rm(pred_list)
+pred_plot_stack <- stack(pred_list[1:100])
+spplot(pred_plot_stack[[50]])
+writeRaster(pred_plot_stack[[50]], filename="test_raster")
+#rm(pred_stack_06, pred_stack_07, meteo_stack, times_stack)
 writeRaster(pred_plot_stack[[191:208]], "pred_plot_stack_10", overwrite=T)
 pred_plot_stack_test<-stack("pred_plot_stack_3.grd")
 names(pred_plot_stack_test)
-names(pred_plot_stack_test)<-meteo$datetime[31:50]
+
+spplot(pred_plot_stack[[80]])
+names(pred_plot_stack)<-meteo$datetime[700:800]
 #animate all layers of stack
-saveGIF(animate(pred_plot_stack_test, pause=0.2),
-        movie.name = "pred_2.gif")
+saveGIF(animate(pred_plot_stack[[1:50]], pause=0.2, col=heat.colors(n=30,rev = T)),
+        movie.name = "pred_plot_3_part1.gif")
 
 setwd("C:/Users/Dana/Desktop/Pred_plot_stacks/")
 #create animated gif for all stacks

@@ -41,8 +41,14 @@ ggsave(filename=paste("train_dat_",
 }
 
 #check times where prediction is wrong
-starttime<-"2020-06-11 20:00:00"
-endtime<-"2020-06-12 10:00:00"
+starttime<-"2020-06-09 20:00:00"
+endtime<-"2020-06-10 10:00:00"
+
+starttime<-"2020-06-12 20:00:00"
+endtime<-"2020-06-13 10:00:00"
+
+starttime<-"2020-06-17 20:00:00"
+endtime<-"2020-06-18 11:00:00"
 #2022 06 07 nachts
 meteo_weird<-meteo[meteo$datetime>=starttime& meteo$datetime<=endtime,]
 #set wd
@@ -76,7 +82,8 @@ ggplot(data=total_stack_weird)+
 ggsave(filename="training_temperatures_weird.jpg", width = 300, 
        height=200, units="mm")
 
-#plot all
+model
+####plot all
 for(i in 2:ncol(total_stack_weird)){
   if(i==20){}#do nothing
   else{
