@@ -3,6 +3,7 @@ library(openair)
 library(lubridate)
 library(dplyr)
 library(readxl)
+library(zoo)
 #read in 2019 data
 #geo_2019<-read.table("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_roh/Meteo_Daten/Meteo_GeoDach/GeoDach_2019.csv",
 #                     sep=",", dec=".", skip=2000, header=F, nrow=20000,fill = T, na.strings = c("-"),
@@ -46,6 +47,44 @@ meteo_geo$date<-as.POSIXct(meteo_geo$date, tz="Europe/London")
 meteo_geo$Precipitation<-cum_prec_hour$Precipitation
 #convert to summertime to match Steinf and Logger 
 meteo_geo <- with_tz(time = meteo_geo, tzone = "CET")
+
+####calculate cumulative radiation per day####
+#read in sunrise/sunset data
+setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Praediktoren/Time_of_day/")
+sunrise<-read.table(file = "Sunrise_dates.csv", sep=";", dec=".", header=T)      
+sunrise$day<-seq.Date(from=as.Date("2020-01-01"), to=as.Date("2020-12-31"), by="day")
+sunrise<-sunrise[,c(3,7)]
+sunrise$Sunrise<-as.factor(sunrise$Sunrise)
+#save with proper date
+write.csv(sunrise, "sunrise_with_date.csv", row.names = F)
+#prepare meteo geo
+#meteo_geo$day<-lubridate::date(meteo_geo$date) #create column with day
+#calculate rolling sum for 24 h 
+meteo_geo$cum_radiation = rollsum(meteo_geo$Shortwave.Radiation, k = 24, fill = NA)
+#check
+#plot(sum_24h, type="l")
+
+#join with meteo_geo
+#meteo_geo<-left_join(meteo_geo, sunrise, by="day")
+#meteo_geo<-meteo_geo %>% 
+#  group_by(Sunrise) %>% #group by sunrise --> spans from one sunrise to next
+#  mutate(cum_radiation = cumsum(Shortwave.Radiation)) #calculate cumsum per day
+#meteo_geo<-meteo_geo[meteo_geo$date>=starttime&meteo_geo$date<=endtime,]
+
+#calculate cumulative precipitation
+meteo_geo$hour3<-as.factor(round_date(meteo_geo$date, unit = "3 hours"))
+meteo_geo$day<-as.factor(round_date(meteo_geo$date, unit="day"))
+
+#for 3 hours
+meteo_geo<-meteo_geo %>%
+  group_by(hour3) %>% #group for every 3 hours
+  mutate(cum_prec_hours3 = cumsum(Precipitation)) #calculate cumsum per day
+#for 1 day
+#meteo_geo<-meteo_geo %>% 
+#  group_by(Sunrise) %>% #group for one day
+#  mutate(cum_prec_day = cumsum(Precipitation)) #calculate cumsum per day
+#calculate rolling sum for 24 h 
+meteo_geo$cum_prec_day = rollsum(meteo_geo$Precipitation, k = 24, fill = NA)
 #subset to timespans needed
 #2019:  
 #08/20 - 09/30   2019-08-20 00:00:00 bis 2019-09-30 00:00:00
@@ -69,37 +108,7 @@ meteo_geo<-rbind(Spring2020,Summer2020) #exclude Summer2019,Autumn2019,
 #remove temporaray dat
 rm(Spring2020,Summer2020) #exclude Summer2019,Autumn2019,
 
-####calculate cumulative radiation per day####
-#read in sunrise/sunset data
-setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Praediktoren/Time_of_day/")
-sunrise<-read.table(file = "Sunrise_dates.csv", sep=";", dec=".", header=T)      
-sunrise$day<-seq.Date(from=as.Date("2020-01-01"), to=as.Date("2020-12-31"), by="day")
-sunrise<-sunrise[,c(3,7)]
-sunrise$Sunrise<-as.factor(sunrise$Sunrise)
-#save with proper date
-write.csv(sunrise, "sunrise_with_date.csv", row.names = F)
-#prepare meteo geo
-meteo_geo$day<-lubridate::date(meteo_geo$date) #create column with day
-#join with meteo_geo
-meteo_geo<-left_join(meteo_geo, sunrise, by="day")
-meteo_geo<-meteo_geo %>% 
-  group_by(Sunrise) %>% #group by sunrise --> spans from one sunrise to next
-  mutate(cum_radiation = cumsum(Shortwave.Radiation)) #calculate cumsum per day
-#meteo_geo<-meteo_geo[meteo_geo$date>=starttime&meteo_geo$date<=endtime,]
 
-#calculate cumulative precipitation
-meteo_geo$hour3<-as.factor(round_date(meteo_geo$date, unit = "3 hours"))
-meteo_geo$day<-as.factor(round_date(meteo_geo$date, unit="day"))
-
-#for 3 hours
-meteo_geo<-meteo_geo %>%
-  group_by(hour3) %>% #group for every 3 hours
-  mutate(cum_prec_hours3 = cumsum(Precipitation)) #calculate cumsum per day
-#for 1 day
-meteo_geo<-meteo_geo %>% 
-  group_by(Sunrise) %>% #group for one day
-  mutate(cum_prec_day = cumsum(Precipitation)) #calculate cumsum per day
-
-meteo_geo<-meteo_geo[,-c(5,8)]
+meteo_geo<-meteo_geo[,-c(6,7)]
 setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Praediktoren/Meteorologie/GeoDach/")
 write.csv(meteo_geo, "meteo_geo.csv", row.names = F)

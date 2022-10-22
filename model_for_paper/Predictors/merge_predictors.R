@@ -122,9 +122,9 @@ setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Praediktoren")
 writeRaster(pred_stack_06, "pred_stack_06_20221018.tif", bylayer=F, format="raster", overwrite=T)
 writeRaster(pred_stack_07, "pred_stack_07_20221018.tif", bylayer=F, format="raster", overwrite=T)
 #load stacks
-#setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Praediktoren")
-#pred_stack_06<-stack("all_static_pred_06.grd")
-#pred_stack_07<-stack("all_static_pred_07.grd")
+setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Praediktoren")
+pred_stack_06<-stack("pred_stack_06_20221018.grd")
+pred_stack_07<-stack("pred_stack_07_20221018.grd")
 
 load("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Trainingsdaten/SpatialPoints_Temp_Data")
 #load("/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Trainingsdaten/SpatialPoints_Temp_Data")
@@ -149,7 +149,7 @@ all_temp<-read.csv("all_temp.csv")
 
 #load meteo predictors
 setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Praediktoren/Meteorologie")
-meteo<-read.csv("meteo_all.csv")
+meteo<-read.csv("meteo_all_20221022.csv")
 str(meteo)
 #rename
 colnames(meteo)[1]<-"date_time"
@@ -200,7 +200,7 @@ for(i in 1:222){
 } 
 beep()
 setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Praediktoren/")
-write.csv(total_stack, file ="total_stack_06_20221018.csv")
+write.csv(total_stack, file ="total_stack_06_20221022.csv")
 
 remove(total_stack)
 remove(total_stack_temp)
@@ -248,10 +248,10 @@ for(i in 223:length((spatial_list))){
 }  
 
 setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Praediktoren/")
-write.csv(total_stack, file ="total_stack_07_20221018.csv")
+write.csv(total_stack, file ="total_stack_07_20221022.csv")
 remove(total_stack, total_stack_temp)
-total_stack_06 <- read.csv("total_stack_06_20221018.csv")
-total_stack_07 <- read.csv("total_stack_07_20221018.csv") 
+total_stack_06 <- read.csv("total_stack_06_20221022.csv")
+total_stack_07 <- read.csv("total_stack_07_20221022.csv") 
 
 names(total_stack_07)[names(total_stack_07) == 'albedo_07'] <- 'albedo'
 names(total_stack_07)[names(total_stack_07) == 'ndvi_07'] <- 'ndvi'
@@ -260,14 +260,9 @@ names(total_stack_06)[names(total_stack_06) == 'albedo_06'] <- 'albedo'
 names(total_stack_06)[names(total_stack_06) == 'ndvi_06'] <- 'ndvi'
   
 total <- rbind(total_stack_06, total_stack_07)
+str(total)
 total <- total[,2:35] #remove double first column
-plot(total$hours_ssr, type="l")
-lines(total$hours_sss, type="l", col="red")
 
-#cheat for stability
-for(i in 1:length(total$meteo_stability)){
-  total$meteo_stability[i]<-meteo$meteo_stability[meteo$date_time==total$date_time[i]]
-}
 
 #set height of non-existing buildings to 0 
 total$building_height[is.na(total$building_height)]<-0
@@ -278,7 +273,7 @@ total$building_height_sd_5x5[is.na(total$building_height_sd_5x5)]<-0
 total$hours_ssr[is.na(total$hours_ssr)]<-0
 total$hours_sss[is.na(total$hours_sss)]<-0
 
-write.csv(total, file ="total_stack_20221018.csv", row.names = F)
+write.csv(total, file ="total_stack_20221022.csv", row.names = F)
 
-test<-read.csv(file="total_stack_06_20221012.csv")
+test<-read.csv(file="total_stack_20221022.csv")
 

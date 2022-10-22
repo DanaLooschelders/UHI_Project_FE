@@ -1,4 +1,4 @@
-#third model with 10m resolution
+
 library(openair)
 library(lubridate)
 #set timespan needed
@@ -113,4 +113,4 @@ str(meteo$meteo_stability) #check
 
 #write in file
 setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Praediktoren/Meteorologie/")
-write.csv(meteo, file = "meteo_all.csv", row.names = F )
+write.csv(meteo, file = "meteo_all_20221022.csv", row.names = F )
