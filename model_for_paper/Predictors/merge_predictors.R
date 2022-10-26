@@ -275,5 +275,10 @@ total$hours_sss[is.na(total$hours_sss)]<-0
 
 write.csv(total, file ="total_stack_20221022.csv", row.names = F)
 
-test<-read.csv(file="total_stack_20221022.csv")
+total_stack<-read.csv(file="total_stack_20221022.csv")
 
+#complete cases
+#sicherstellen, dass keine NAs in Daten sind
+total_stack <- total_stack[complete.cases(total_stack),]
+
+write.csv(total_stack, file ="total_stack_20221024.csv", row.names = F)

@@ -99,3 +99,12 @@ for(i in 2:ncol(total_stack_weird)){
            height=200, units="mm")
   }
 }
+setwd("C:/Users/Dana/sciebo/ndom/klaus/traindataplots")
+#check cum radiation
+ggplot(data=meteo, aes(x=datetime, y=meteo_cum_radiation))+
+  geom_line()+
+  theme_bw()
+ggsave(filename="running_cum_radiation.pdf", width = 300, 
+       height=200, units="mm")
+
+plot(meteo$datetime, meteo$meteo_cum_radiation, type="l")
