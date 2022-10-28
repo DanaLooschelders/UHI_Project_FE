@@ -149,12 +149,11 @@ all_temp<-read.csv("all_temp.csv")
 
 #load meteo predictors
 setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Praediktoren/Meteorologie")
-meteo<-read.csv("meteo_all_20221022.csv")
+meteo<-read.csv("meteo_all_20221028.csv")
 str(meteo)
 #rename
 colnames(meteo)[1]<-"date_time"
 meteo$date_time<-as.POSIXct(meteo$date_time)
-
 
 #load dynamic predictors 
 for(i in 1:222){
@@ -200,7 +199,7 @@ for(i in 1:222){
 } 
 beep()
 setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Praediktoren/")
-write.csv(total_stack, file ="total_stack_06_20221022.csv")
+write.csv(total_stack, file ="total_stack_06_20221028.csv")
 
 remove(total_stack)
 remove(total_stack_temp)
@@ -246,12 +245,12 @@ for(i in 223:length((spatial_list))){
     total_stack<-rbind(total_stack, total_stack_temp)
   }
 }  
-
+beep()
 setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Praediktoren/")
-write.csv(total_stack, file ="total_stack_07_20221022.csv")
+write.csv(total_stack, file ="total_stack_07_20221028.csv", col.names = F)
 remove(total_stack, total_stack_temp)
-total_stack_06 <- read.csv("total_stack_06_20221022.csv")
-total_stack_07 <- read.csv("total_stack_07_20221022.csv") 
+total_stack_06 <- read.csv("total_stack_06_20221028.csv")
+total_stack_07 <- read.csv("total_stack_07_20221028.csv") 
 
 names(total_stack_07)[names(total_stack_07) == 'albedo_07'] <- 'albedo'
 names(total_stack_07)[names(total_stack_07) == 'ndvi_07'] <- 'ndvi'
@@ -261,7 +260,7 @@ names(total_stack_06)[names(total_stack_06) == 'ndvi_06'] <- 'ndvi'
   
 total <- rbind(total_stack_06, total_stack_07)
 str(total)
-total <- total[,2:35] #remove double first column
+#total <- total[,2:35] #remove double first column
 
 
 #set height of non-existing buildings to 0 
@@ -273,12 +272,12 @@ total$building_height_sd_5x5[is.na(total$building_height_sd_5x5)]<-0
 total$hours_ssr[is.na(total$hours_ssr)]<-0
 total$hours_sss[is.na(total$hours_sss)]<-0
 
-write.csv(total, file ="total_stack_20221022.csv", row.names = F)
+write.csv(total, file ="total_stack_20221028.csv", row.names = F)
 
-total_stack<-read.csv(file="total_stack_20221022.csv")
+total_stack<-read.csv(file="total_stack_20221028.csv")
 
 #complete cases
 #sicherstellen, dass keine NAs in Daten sind
 total_stack <- total_stack[complete.cases(total_stack),]
 
-write.csv(total_stack, file ="total_stack_20221024.csv", row.names = F)
+write.csv(total_stack, file ="total_stack_20221028.csv", row.names = F)

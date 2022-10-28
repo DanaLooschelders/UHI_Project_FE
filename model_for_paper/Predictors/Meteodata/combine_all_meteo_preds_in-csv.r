@@ -1,4 +1,3 @@
-
 library(openair)
 library(lubridate)
 #set timespan needed
@@ -12,7 +11,7 @@ library(lubridate)
 
 ####Geodach####
 setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Praediktoren/Meteorologie/GeoDach/")
-meteo_geo<-read.table(file="meteo_geo.csv", dec=".", sep=",", header=T)
+meteo_geo<-read.table(file="meteo_geo_20221028.csv", dec=".", sep=",", header=T)
 ####Steinfurther Str####
 #Steinf: Temp, rH,  stability (calculated from temp) #ACHTUNG ewige Sommerzeit
 setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Praediktoren/Meteorologie/Steinfurter/preprocessed/")
@@ -97,7 +96,7 @@ meteo <- data.frame("datetime"=meteo_steinf$date,
                     "meteo_stability" =meteo_steinf$stability,
                     "meteo_cloudcover"=meteo_geo$tcc,
                     "meteo_radiation"=meteo_geo$Shortwave.Radiation,
-                    "meteo_cum_radiation"=meteo_geo$cum_radiation,
+                    "meteo_cum_radiation"=meteo_geo$cum_radiation_18h,
                     "meteo_precip"=meteo_geo$Precipitation,
                     "meteo_precip3hour"=meteo_geo$cum_prec_hours3,
                     "meteo_precip1day"=meteo_geo$cum_prec_day,
@@ -113,4 +112,4 @@ str(meteo$meteo_stability) #check
 
 #write in file
 setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Praediktoren/Meteorologie/")
-write.csv(meteo, file = "meteo_all_20221022.csv", row.names = F )
+write.csv(meteo, file = "meteo_all_20221028.csv", row.names = F )

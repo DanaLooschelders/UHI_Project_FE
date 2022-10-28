@@ -4,6 +4,7 @@ library(lubridate)
 library(dplyr)
 library(readxl)
 library(zoo)
+library(tidyverse)
 #read in 2019 data
 #geo_2019<-read.table("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Daten_roh/Meteo_Daten/Meteo_GeoDach/GeoDach_2019.csv",
 #                     sep=",", dec=".", skip=2000, header=F, nrow=20000,fill = T, na.strings = c("-"),
@@ -38,6 +39,8 @@ meteo_geo<-geo_2020
 #calculate hourly precipitation
 cum_prec_hour<-timeAverage(meteo_geo[,c(1,3)], statistic="sum", avg.time="hour")
 str(meteo_geo)
+#check
+plot(meteo_geo$Shortwave.Radiation, type="l")
 #meteo_geo$tcc<-as.factor(meteo_geo$tcc)
 
 #round to hour
@@ -45,6 +48,10 @@ meteo_geo=timeAverage(meteo_geo,avg.time = "hour")
 meteo_geo$tcc<-round(meteo_geo$tcc, digits = 0)
 meteo_geo$date<-as.POSIXct(meteo_geo$date, tz="Europe/London")
 meteo_geo$Precipitation<-cum_prec_hour$Precipitation
+#check
+plot(meteo_geo$Precipitation, type="l")
+plot(meteo_geo$tcc, type="l")
+
 #convert to summertime to match Steinf and Logger 
 meteo_geo <- with_tz(time = meteo_geo, tzone = "CET")
 
@@ -60,7 +67,16 @@ write.csv(sunrise, "sunrise_with_date.csv", row.names = F)
 #prepare meteo geo
 #meteo_geo$day<-lubridate::date(meteo_geo$date) #create column with day
 #calculate rolling sum for 24 h 
-meteo_geo$cum_radiation = rollsum(meteo_geo$Shortwave.Radiation, k = 24, fill = NA)
+meteo_geo$cum_radiation_24h = rollsum(meteo_geo$Shortwave.Radiation, 
+                                      k = 24, fill = NA, align="right")
+meteo_geo$cum_radiation_18h=rollsum(meteo_geo$Shortwave.Radiation, 
+                                    k = 20, fill = NA, align="right")
+meteo_geo$cum_radiation_12h<-rollsum(meteo_geo$Shortwave.Radiation, 
+                                     k = 12, fill = NA, align="right")
+meteo_geo$cum_radiation_6h<-rollsum(meteo_geo$Shortwave.Radiation, 
+                                    k = 6, fill = NA, align="right")
+
+
 #check
 #plot(sum_24h, type="l")
 
@@ -78,13 +94,14 @@ meteo_geo$day<-as.factor(round_date(meteo_geo$date, unit="day"))
 #for 3 hours
 meteo_geo<-meteo_geo %>%
   group_by(hour3) %>% #group for every 3 hours
-  mutate(cum_prec_hours3 = cumsum(Precipitation)) #calculate cumsum per day
+  mutate(cum_prec_hours3 = cumsum(Precipitation)) #calculate cumsum per 3h
 #for 1 day
 #meteo_geo<-meteo_geo %>% 
 #  group_by(Sunrise) %>% #group for one day
 #  mutate(cum_prec_day = cumsum(Precipitation)) #calculate cumsum per day
 #calculate rolling sum for 24 h 
-meteo_geo$cum_prec_day = rollsum(meteo_geo$Precipitation, k = 24, fill = NA)
+meteo_geo$cum_prec_day = rollsum(meteo_geo$Precipitation, 
+                                 k = 24, fill = NA, align="right")
 #subset to timespans needed
 #2019:  
 #08/20 - 09/30   2019-08-20 00:00:00 bis 2019-09-30 00:00:00
@@ -105,10 +122,24 @@ Summer2020<-meteo_geo[meteo_geo$date>="2020-07-03 00:00:00"&
                         meteo_geo$date<="2020-07-31 00:00:00",]
 #rbind together
 meteo_geo<-rbind(Spring2020,Summer2020) #exclude Summer2019,Autumn2019,
+
+setwd("C:/Users/Dana/sciebo/ndom/klaus isst eine laus")
+#get in tidy structure for ggplot and plot as facet grid
+meteo_geo[1:70,] %>% 
+  gather(., names, value, -c(date, tcc, Precipitation, cum_radiation_6h, cum_radiation)) %>% 
+  ggplot(., aes(x=date,y=value,color=names)) + 
+  geom_line()+
+  ylab(label="Shortwave radiation [W/m^2]")+
+  theme_bw()+
+  geom_vline(xintercept = as.POSIXct(paste(seq.POSIXt(from=meteo_geo$date[1], 
+                                     to=meteo_geo$date[70], by="day"), "00:00:00", sep=" ")), col="grey")+
+  facet_grid(names~.,scales = "free")
+
+ggsave(filename = "cumulative_radiation_every_day_snippet.png",  width = 300, 
+       height=200, units="mm")
 #remove temporaray dat
 rm(Spring2020,Summer2020) #exclude Summer2019,Autumn2019,
 
-
-meteo_geo<-meteo_geo[,-c(6,7)]
+#meteo_geo<-meteo_geo[,-c(6,7)]
 setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Praediktoren/Meteorologie/GeoDach/")
-write.csv(meteo_geo, "meteo_geo.csv", row.names = F)
+write.csv(meteo_geo, "meteo_geo_20221028.csv", row.names = F)
