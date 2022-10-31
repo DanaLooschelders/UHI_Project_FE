@@ -16,8 +16,13 @@ library(caret)
 library(randomForest)
 library(latticeExtra)
 library(beepr)
+library(scales)
+library(grid)
+library(gridExtra)
 #install.packages("animation")
 library(animation)
+#install.packages("ggpmisc")                         # Install & load ggpmisc
+library(ggpmisc)
 #parallel
 library(parallel)
 #install.packages("doParallel")
@@ -26,21 +31,27 @@ library(doParallel)
 #library(push)
 #predict for whole time period
 #load model
-setwd("C:/Users/Dana/sciebo/ndom/klaus/")
-model<-readRDS(file = "ffs_Model_2022-10-13.RDS")
-writeRaster(total_stack[[149]], filename = "test_raster")
+setwd("C:/Users/Dana/sciebo/ndom/klaus isst eine maus/")
+model<-readRDS(file = "ffs_Model_2022-10-19.RDS")
+
 varImp(model)
 #load meteo data
 setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Praediktoren/Meteorologie")
-meteo<-read.csv("meteo_all.csv")
+meteo<-read.csv("meteo_all_20221028.csv")
 meteo$datetime<-as.POSIXct(meteo$datetime)
+
+#load training data
+setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Praediktoren/")
+total_stack<-read.csv(file="total_stack_20221028.csv")
 
 #load static pred stack
 setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Praediktoren")
 pred_stack_06<-stack("pred_stack_06_20221012.grd")
 names(pred_stack_06)[1:2]<-c("albedo","ndvi") #rename to match model
+names(pred_stack_06)[12:14]<-c("SVF", "element_height_mean", "element_height_sd")
 pred_stack_07<-stack("pred_stack_07_20221012.grd")
 names(pred_stack_07)[1:2]<-c("albedo","ndvi") #rename to match model
+names(pred_stack_07)[12:14]<-c("SVF", "element_height_mean", "element_height_sd")
 #correct buildings
 values(pred_stack_06$building_height)[is.na(values(pred_stack_06$building_height))]<-0
 values(pred_stack_06$building_height_sd_3x3)[is.na(values(pred_stack_06$building_height_sd_3x3))]<-0
@@ -56,7 +67,10 @@ raster_Steinf<-stack("empty_Raster_Steinf.grd")
 
 setwd("D:/Meteo/")
 #####meteo####
-for(i in 700:800){
+#120 bis 180
+#700 bis 800
+#300 bis 400
+for(i in 300:400){
   #Temperature
   raster_Steinf_temp<-raster_Steinf
   values(raster_Steinf_temp)<-meteo$meteo_Temp[i]
@@ -104,6 +118,7 @@ for(i in 700:800){
   writeRaster(meteo_stack, filename = paste("Meteo_", i,
                                             sep="_"), overwrite=T)
 }
+
 beep()
 setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Praediktoren/Time_of_day/")
 times<-read.csv("times_tidy_20221018.csv")
@@ -112,7 +127,7 @@ times$hours_sss[is.na(times$hours_sss)]<-0
 ####times of day####
 setwd("D:/Times/")
 
-for(i in 139:139){
+for(i in 300:400){
   tryCatch({
   #hours_sss
   raster_Steinf_sss<-raster_Steinf
@@ -133,9 +148,9 @@ for(i in 139:139){
 beep()
 
 #create output list
-pred_list<-vector(mode='list', length=50)
+pred_list<-vector(mode='list', length=100)
 x=0 #initialise x
-for(i in 130:170){
+for(i in 300:400){
   print(i)
   x=x+1
   if(i<=222){ #take june pred stack
@@ -165,71 +180,72 @@ for(i in 130:170){
 
 beep()
 setwd("C:/Users/Dana/Desktop")
-saveRDS(pred_list, file="pred_list_130_170.RDS")
-
-pred_list<-readRDS(file="pred_list_130_170.RDS")
-
+saveRDS(pred_list, file="pred_list_300_400.RDS")
+pred_list<-readRDS("pred_list_300_400.RDS")
 #stack all predictions
-pred_plot_stack <- stack(pred_list[1:41])
-rm(pred_list, pred_stack_06, pred_stack_07)
-spplot(pred_plot_stack[[40]])
-writeRaster(pred_plot_stack[[50]], filename="test_raster")
-#rm(pred_stack_06, pred_stack_07, meteo_stack, times_stack)
-writeRaster(pred_plot_stack[[191:208]], "pred_plot_stack_10", overwrite=T)
-pred_plot_stack_test<-stack("pred_plot_stack_3.grd")
-names(pred_plot_stack_test)
+pred_plot_stack <- stack(pred_list)
+#rm(pred_list, pred_stack_06, pred_stack_07)
 
-spplot(pred_plot_stack[[80]])
-names(pred_plot_stack)<-meteo$datetime[130:170]
-#animate all layers of stack
-saveGIF(animate(pred_plot_stack[[1:41]], pause=0.2, col=heat.colors(n=30,rev = T)),
-        movie.name = "pred_plot_130_170.gif")
-getwd()
-setwd("C:/Users/Dana/Desktop/Pred_plot_stacks/")
-#create animated gif for all stacks
-
-for(i in 2:10){
-  print(i)
-  pred_plot_stack_test<-stack(paste("pred_plot_stack_",i, ".grd", sep=""))
-  #get rows for meteodata
-  rows<-as.numeric(substr(names(pred_plot_stack_test), start=7, stop=9))
-  #rename to time
-  names(pred_plot_stack_test)<-meteo$datetime[rows]
-  #save as gif
-  saveGIF(animate(pred_plot_stack_test, pause=0.2, col=heat.colors(n=30,rev = T)),
-          movie.name = paste("pred_", i, ".gif", sep=""))
-  
-}
-#get rows for meteodata
-rows<-as.numeric(substr(names(pred_plot_stack), start=7, stop=9))
-#rename to time
-names(pred_plot_stack)<-meteo$datetime[rows]
-
-#save gif for al frames
-saveGIF(animate(pred_plot_stack[[100:208]], pause=0.2, col=heat.colors(n=30,rev = T)),
-        movie.name = "pred_plot_whole_part_2.gif")
-beep()
-plot(pred_plot_stack[[1]])
 #save names in vector
-name_vec<-names(pred_plot_stack)
+name_vec<-meteo$datetime[300:400]
 #use pred_list because all items are called "layer" and can be used to call ggplot
 #DO NOT CHANGE NAME OF LIST ITEMS
-setwd("C:/Users/Dana/Desktop/Predictions_ggplot")
-for(i in 1:length(pred_list)){
+setwd("C:/Users/Dana/Desktop/Predictions_ggplot_20221031")
+#initialise x
+x=299
+i=27
+for(i in 1:length(pred_list)){#l
   tryCatch({
-  ggplot(pred_list[[i]]) +  
+  print(i)
+  x=x+1
+  x=299+28
+  #create temp meteo table
+  meteo_temp<-round(meteo[x,2:12], digits = 1)
+  #make colnames shorter
+  colnames(meteo_temp)<-substr(colnames(meteo_temp), start=7, stop=13)
+#subset stack to datetime of prediction
+  total_stack_temp<-total_stack[total_stack$time==meteo$datetime[x],]
+  #create boxplot for training data
+  plot1<-ggplot(data=total_stack_temp)+
+    geom_boxplot(aes(x = time, y = Temp))+
+    theme_bw()+
+    ggtitle(label="Training data [°C]")+
+    theme(axis.title.x=element_blank(),
+          axis.text.x=element_blank(),
+          axis.ticks.x=element_blank(),
+          axis.title.y=element_blank())
+    
+  #create prediction map
+  plot2<-ggplot(pred_list[[i]]) +  
   geom_tile(aes(x=x, y=y, fill=layer)) +
   coord_equal()+
   ggtitle(paste(substr(name_vec[i], start = 2, stop=11), " ", 
                 substr(name_vec[i], start=13, stop=14), "o'clock"))+
   scale_fill_gradient("Temp. [°C]", na.value = "white", low = "yellow", high = "red")+
   theme_bw()
-  ggsave(filename=paste("prediction_20221028_", 
-                        name_vec[i],
-                        ".jpg", sep=""), width = 300, 
-         height=200, units="mm")
+  plot_whole<-plot2+annotation_custom(ggplotGrob(plot1),
+                                      xmin=7.79, xmax=7.85,
+                                      ymin=51.825, ymax=51.92)
+  #create table object
+  tbl <- tableGrob(meteo_temp, rows=NULL)
+  #save with png
+  png(filename = gsub(pattern = ":", replacement="_", x=paste("prediction_20221031_", 
+            name_vec[i],
+            ".png", sep="")), width = 300, height = 200, 
+      units = "mm", res=100)
+  #plot
+  grid.arrange(plot_whole, tbl,
+                 nrow = 2,
+                 as.table = TRUE,
+               heights = c(1.8, 0.3))
+dev.off()
+#pause for 5 sec
+Sys.sleep(1) 
   }, error=function(e){})
 }
 
-names(pred_plot_stack[[1]])
-pred_plot_stack[[1]]
+beep()
+
+#dev.cur()
+#add meteo values with geom_text to plot
+#maybe even add training data
