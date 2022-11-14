@@ -281,3 +281,10 @@ total_stack<-read.csv(file="total_stack_20221028.csv")
 total_stack <- total_stack[complete.cases(total_stack),]
 
 write.csv(total_stack, file ="total_stack_20221028.csv", row.names = F)
+
+#reduce training data
+setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Praediktoren/")
+total_stack<-read.csv(file="total_stack_20221028.csv")
+total_stack_short<-total_stack[total_stack$date_time>="2020-07-00 00:00:00",]
+#write to file
+write.csv(total_stack_short, file="total_stack_reduced_traindat_20221101.csv", row.names=F)

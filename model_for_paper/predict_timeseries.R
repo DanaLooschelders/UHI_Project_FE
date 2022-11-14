@@ -31,18 +31,18 @@ library(doParallel)
 #library(push)
 #predict for whole time period
 #load model
-setwd("C:/Users/Dana/sciebo/ndom/klaus isst eine maus/")
-model<-readRDS(file = "ffs_Model_2022-10-19.RDS")
+setwd("C:/Users/Dana/sciebo/ndom/klaus isst den Nikolaus/")
+model<-readRDS(file = "ffs_Model_2022-11-07.RDS")
 
 varImp(model)
 #load meteo data
 setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Praediktoren/Meteorologie")
 meteo<-read.csv("meteo_all_20221028.csv")
 meteo$datetime<-as.POSIXct(meteo$datetime)
-
+meteo$datetime[355]
 #load training data
 setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Praediktoren/")
-total_stack<-read.csv(file="total_stack_20221028.csv")
+total_stack<-read.csv(file="total_stack_reduced_traindat_20221101.csv")
 
 #load static pred stack
 setwd("C:/Users/Dana/sciebo/UHI_Projekt_Fernerkundung/Praediktoren")
@@ -150,7 +150,7 @@ beep()
 #create output list
 pred_list<-vector(mode='list', length=100)
 x=0 #initialise x
-for(i in 300:400){
+for(i in 700:800){
   print(i)
   x=x+1
   if(i<=222){ #take june pred stack
@@ -180,25 +180,27 @@ for(i in 300:400){
 
 beep()
 setwd("C:/Users/Dana/Desktop")
-saveRDS(pred_list, file="pred_list_300_400.RDS")
-pred_list<-readRDS("pred_list_300_400.RDS")
+saveRDS(pred_list, file="pred_list_700_000.RDS")
+pred_list<-readRDS("pred_list_350_400.RDS")
+
+writeRaster(pred_list[[17]], filename = "test_raster_2", overwrite=T)
+
 #stack all predictions
 pred_plot_stack <- stack(pred_list)
 #rm(pred_list, pred_stack_06, pred_stack_07)
 
 #save names in vector
-name_vec<-meteo$datetime[300:400]
+name_vec<-meteo$datetime[700:800]
 #use pred_list because all items are called "layer" and can be used to call ggplot
 #DO NOT CHANGE NAME OF LIST ITEMS
-setwd("C:/Users/Dana/Desktop/Predictions_ggplot_20221031")
+setwd("C:/Users/Dana/Desktop/Predictions_ggplot_20221113/")
 #initialise x
-x=299
-i=27
+x=699
+i=1
 for(i in 1:length(pred_list)){#l
   tryCatch({
   print(i)
   x=x+1
-  x=299+28
   #create temp meteo table
   meteo_temp<-round(meteo[x,2:12], digits = 1)
   #make colnames shorter
@@ -217,11 +219,11 @@ for(i in 1:length(pred_list)){#l
     
   #create prediction map
   plot2<-ggplot(pred_list[[i]]) +  
-  geom_tile(aes(x=x, y=y, fill=layer)) +
+  geom_raster(aes(x=x, y=y, fill=layer)) +
   coord_equal()+
   ggtitle(paste(substr(name_vec[i], start = 2, stop=11), " ", 
-                substr(name_vec[i], start=13, stop=14), "o'clock"))+
-  scale_fill_gradient("Temp. [°C]", na.value = "white", low = "yellow", high = "red")+
+                substr(name_vec[i], start=12, stop=14), "o'clock"))+
+  scale_fill_gradient("Temp. [°C]", na.value = "black", low = "yellow", high = "red")+
   theme_bw()
   plot_whole<-plot2+annotation_custom(ggplotGrob(plot1),
                                       xmin=7.79, xmax=7.85,
@@ -232,7 +234,7 @@ for(i in 1:length(pred_list)){#l
   png(filename = gsub(pattern = ":", replacement="_", x=paste("prediction_20221031_", 
             name_vec[i],
             ".png", sep="")), width = 300, height = 200, 
-      units = "mm", res=100)
+      units = "mm", res=500)
   #plot
   grid.arrange(plot_whole, tbl,
                  nrow = 2,
