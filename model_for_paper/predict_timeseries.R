@@ -150,6 +150,8 @@ beep()
 #create output list
 pred_list<-vector(mode='list', length=100)
 x=0 #initialise x
+x=20
+i=320
 for(i in 700:800){
   print(i)
   x=x+1
@@ -177,13 +179,23 @@ for(i in 700:800){
     pred_list[[x]]<-predict(pred_stack_temp, model, savePrediction=TRUE)
   }
 }
-
+setwd("Z:/home/Dana_Looschelders/Klaus/20221114")
+writeRaster(pred_stack_temp, "pred_stack_717")
+writeRaster(pred_stack_temp, "pred_stack_780")
+writeRaster(pred_stack_temp, "pred_stack_320")
+getwd()
 beep()
 setwd("C:/Users/Dana/Desktop")
 saveRDS(pred_list, file="pred_list_700_000.RDS")
 pred_list<-readRDS("pred_list_350_400.RDS")
 
-writeRaster(pred_list[[17]], filename = "test_raster_2", overwrite=T)
+writeRaster(pred_list[[17]], filename = "test_raster_20221114", overwrite=T)
+meteo$datetime[717]
+writeRaster(pred_list[[25]], filename = "test_raster_20221114_night", overwrite=T)
+meteo$datetime[725]
+writeRaster(pred_list[[8]], filename = "test_raster_20221114_morning", overwrite=T)
+meteo$datetime[708]
+
 
 #stack all predictions
 pred_plot_stack <- stack(pred_list)
